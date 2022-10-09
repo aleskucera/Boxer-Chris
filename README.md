@@ -1,2 +1,2 @@
 # ROB-semestral-project
-Semestral project for Robotics 
+Semestral project for Robotics class
