@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<launch>	
+	<arg name="type"/>	
+    <arg name="model" value="$(find mitsubishi_arm_description)/robots/mitsubishi_$(arg type).urdf.xacro"/>
+    <param name="/robot_description" command="$(find xacro)/xacro $(arg model)" />
+
+	<group if="$(eval 'rv_6s' in arg('type'))">	
+		<param name="/Mitsubishi_robot/len_of_link1" value="0.35" />
+		<param name="/Mitsubishi_robot/len_of_link2" value="0.085" />
+		<param name="/Mitsubishi_robot/len_of_link3" value="0.28" />
+		<param name="/Mitsubishi_robot/len_of_link4" value="0.1" />
+		<param name="/Mitsubishi_robot/len_of_link5" value="0.315" />
+		<param name="/Mitsubishi_robot/len_of_link6" value="0.085" />
+	</group>
+	<group if="$(eval 'rv_6sdl' in arg('type'))">	
+		<param name="/Mitsubishi_robot/len_of_link1" value="0.35" />
+		<param name="/Mitsubishi_robot/len_of_link2" value="0.085" />
+		<param name="/Mitsubishi_robot/len_of_link3" value="0.38" />
+		<param name="/Mitsubishi_robot/len_of_link4" value="0.1" />
+		<param name="/Mitsubishi_robot/len_of_link5" value="0.425" />
+		<param name="/Mitsubishi_robot/len_of_link6" value="0.085" />
+	</group>
+	<group if="$(eval 'pg70' in arg('type'))">	
+		<param name="/Mitsubishi_robot/len_of_gripper" value="0.132" />
+	</group>
+	<group unless="$(eval 'pg70' in arg('type'))">
+		<param name="/Mitsubishi_robot/len_of_gripper" value="0." />
+	</group>
+	<node name="mitsubishi_kinematics_server" pkg="mitsubishi_arm_kinematics" type="mitsubishi_kinematics_server.py" respawn="false" output="screen" required="True"/>
+
+    <!-- Hardware interface -->
+    <include ns="arm" file="$(find mitsubishi_arm_hardware_interface)/launch/mitsubishi_arm_hardware_interface.launch">
+      <arg name="dummy" value="true"/>
+      <arg name="gui" value="False" />
+	  <arg name="type" value="$(arg type)"/>
+    </include>
+
+    <!-- Controllers -->
+    <include ns="arm" file="$(find mitsubishi_arm_control)/launch/mitsubishi_arm_control.launch">
+        <arg name="simulation" value="false"/>
+	</include>
+
+    <group if="$(eval 'pg70' in arg('type'))">
+    <!-- Hardware interface -->
+    <include ns="pg70" file="$(find schunk_pg70_hardware_interface)/launch/schunk_pg70_hardware_interface.launch">
+      <arg name="dummy" value="true"/>
+      <arg name="gui" value="False" />
+    </include>
+	</group>		
+     <!-- Given the published joint states, publish tf for the robot links -->
+     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
+     </node>
+
+    <!-- Moveit -->
+    <include file="$(find mitsubishi_arm_config)/launch/moveit.launch">
+			<arg name="type" value="$(arg type)"/>
+    </include>
+
+
+
+</launch>

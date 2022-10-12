@@ -1,0 +1,152 @@
+\documentclass[twoside]{article}
+\usepackage[a4paper]{geometry}
+\geometry{verbose,tmargin=2.5cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\usepackage{multicol}
+
+% nastavení pisma a češtiny
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[cp1250]{inputenc}
+%\usepackage[czech]{babel}
+\usepackage[british]{babel}	
+\usepackage{amsmath}
+\usepackage{float}
+% odkazy
+\usepackage{url}
+
+% vícesloupcové tabulky
+\usepackage{multirow}
+
+% vnořené popisky obrázků
+\usepackage{subcaption}
+
+% automatická konverze EPS 
+\usepackage{graphicx} 
+\usepackage{epstopdf}
+
+% odkazy a záložky
+\usepackage[unicode=true, bookmarks=true,bookmarksnumbered=true,
+bookmarksopen=false, breaklinks=false,pdfborder={0 0 0},
+pdfpagemode=UseNone,backref=false,colorlinks=true] {hyperref}
+
+% Poznámky při překladu
+\usepackage{xkeyval}	% Inline todonotes
+\presetkeys{todonotes}{inline}{}
+\usepackage[textsize = footnotesize]{todonotes}
+
+% Zacni sekci slovem ukol
+\renewcommand{\thesection}{\arabic{section}}
+% enumerate zacina s pismenem
+%\renewcommand{\theenumi}{\alph{enumi}}
+
+\renewcommand{\labelenumi}{\arabic{enumi}.}
+\renewcommand{\labelenumii}{\alph{enumii}.}
+% smaz aktualni page layout
+\fancyhf{}
+% zahlavi
+\usepackage{titling}
+\fancyhf[HC]{\thetitle}
+\fancyhf[HLE,HRO]{\theauthor}
+\fancyhf[HRE,HLO]{\today}
+%zapati
+\fancyhf[FLE,FRO]{\thepage}
+
+%subfiles package
+\usepackage{subfiles}
+
+% údaje o autorovi
+\title{Kinematics solver for serial 6-DOF manipulators (ROS1 version)}
+\author{Tomas Chaloupecky,\\ Tereza Uhrova}
+\date{\today}
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+%{
+%	\hypersetup{linkcolor=black}
+%	\tableofcontents
+%}
+\newpage
+\section{Introduction}
+This manual describes ROS package solving forward and inverse kinematics of serial 6-DOF manipulator.
+Package provides complete solution of 6-DOF kinematics and it's integration into ROS. 
+
+\section{Estimated Kinematics Model}
+This solver uses kinematics model \ref{fig:robotschemedh} for computation.
+Red circles represent rotation joints and their normal vectors correspond to rotation axis of the joint.
+Joint directions are shown with arrows. 
+The zero position of each joint is shown by thin black line and zero symbol.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\linewidth]{robot_schemeDH}
+	\caption{Used kinematics model}
+	\label{fig:robotschemedh}
+\end{figure}
+
+The solver uses rotation representation by Euler's angles with axis order $ ZXZ $.\\
+As your robot is very likely different, please follow the guide in chapter \ref{sec:configuration}.
+
+%\section{Software}
+%Software is in form of a ROS1 package.
+%The solver it self is called \texttt{kinematics\_6DOF.py} and is located in \texttt{scripts/kinematics\_6DOF} directory.
+%This script contains a class called \texttt{KIN\_6DOF}.
+%Class provides methods for solving the forward and inverse kinematics.\\
+%
+%If the package is compiled, the class is accessible from any package, thanks to the file \texttt{setup.py}.\\
+\newpage
+\section{Configuration}
+\label{sec:configuration}
+Solver needs for it's correct function following parameters.
+These are set in file \texttt{kinematics.yaml} in \text{config/} directory.
+\begin{itemize}
+	\item \texttt{kinematics\_solver} - kinematics plugin to be used
+	\item \texttt{eef\_transformation} - rigid body transformation from 6th frame of model \ref{fig:robotschemedh} to end effector. Transformation is set by six parameters (if Euler angles $ ZXZ $ are used) or seven if quaternions are used.\\
+	The format is
+	\begin{multicols}{2}
+		Euler angles:
+		\begin{itemize}
+			\item X translation
+			\item Y translation
+			\item Z translation
+			\item Z Euler angle
+			\item X Euler angle
+			\item Z Euler angle
+		\end{itemize}
+	\columnbreak
+	quaternion:
+	\begin{itemize}
+		\item X translation
+		\item Y translation
+		\item Z translation
+		\item X quaternion
+		\item Y quaternion
+		\item Z quaternion
+		\item W quaternion
+	\end{itemize}
+	\end{multicols}
+
+	\item \texttt{base\_transformation} - rigid body transformation from world frame to frame $ S $ of model \ref{fig:robotschemedh}. The format is same as above.
+	\item \texttt{link\_lengths} - list of link lengths in order $ l_{1},l_{2},..., l_{6} $.
+	\item \texttt{joint\_offset} - zero position in relation to model \ref{fig:robotschemedh} in order $ J1_{offset}, J2_{offset},...,J6_{offset} $.
+	\item \texttt{joint\_directions} - list of symbols. If joint positive direction of n-th joint is same, the n-th element of list is '+' and '-' otherwise.
+	\item \texttt{configuration} - string of 3 bits. Defines required pose.\todo{konkretni konfigurace}
+	\item \texttt{joint\_limits\_names} - list of joint names which are used in system. These are used to download joint limits.
+\end{itemize}
+
+\textbf{
+	Important: By default file \texttt{kinematics.yaml} sets the the \texttt{SRVKinematicsPlugin} to be used!
+	Remove the kinematics settings from your MoveIt configuration if you use it!
+}
+
+\section{Launching}
+\label{sec:launching}
+
+
+\end{document}

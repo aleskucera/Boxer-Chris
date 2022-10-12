@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="dummy_mode" default="false" />
+
+  <include file="$(find papouch_ros)/launch/quido_usb.launch">
+    <arg name="usb" value="/dev/quido"/>
+  </include>
+
+  <node name="schunk_gripper" pkg="papouch_ros" type="schunk_gripper">
+    <param name="dummy_mode" value="$(arg dummy_mode)" />
+    <param name="write_io_srv" value="/write_io" />
+    <param name="open_io" value="1" />
+    <param name="close_io" value="2" />
+    <param name="stay_energized" value="true" />
+    <param name="action_name" value="gripper_action" />
+    <param name="joint_name" value="gripper_joint" />
+    <param name="joint_limit" value="0.2" />
+    <param name="joint_state" value="0" />
+    <param name="joint_state_rate" value="10" />
+  </node>
+
+</launch>

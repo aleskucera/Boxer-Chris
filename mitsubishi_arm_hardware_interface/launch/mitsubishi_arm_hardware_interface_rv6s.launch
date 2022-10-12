@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="dummy" default="false"/>
+  <arg name="gui" default="False" />
+	
+
+	<rosparam file="$(find mitsubishi_arm_hardware_interface)/config/hw_interface_rv6s.yaml"/>	
+
+  <group if="$(arg dummy)">
+  <node name="mitsubishi_arm_hardware_interface_dummy" pkg="mitsubishi_arm_hardware_interface" type="mitsubishi_arm_rv6s_hardware_interface_dummy_node" respawn="false" output="screen"
+		  required="true">
+		<remap from="/arm/joint_states" to="/joint_states"/>
+  </node>
+  </group>
+  <group unless="$(arg dummy)">
+    <node name="mitsubishi_arm_hardware_interface" pkg="mitsubishi_arm_hardware_interface" type="mitsubishi_arm_rv6s_hardware_interface_node" respawn="false" output="screen"
+	    required="true" >
+		<remap from="/arm/joint_states" to="/joint_states"/>
+    </node>
+  </group>
+
+</launch>

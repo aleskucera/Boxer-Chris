@@ -1,0 +1,30 @@
+# Publish all joint states -----------------------------------
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 100.0 
+
+# Trajectory Controllers ---------------------------------------
+mitsubishi_trajectory_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+    - j1
+    - j2
+    - j3
+    - j4
+    - j5
+    - j6
+  constraints:
+    goal_time: 1.0                   # Override default
+    j1:
+      trajectory: 1.0
+    j2:
+      trajectory: 1.0
+    j3:
+      trajectory: 1.0
+    j4:
+      trajectory: 1.0
+    j5:
+      trajectory: 1.0
+    j6:
+      trajectory: 1.0
+

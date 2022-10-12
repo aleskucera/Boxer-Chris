@@ -1,0 +1,3 @@
+com_port: "/dev/ttyUSB_gripper"
+boud_rate: "9600" 
+maximal_current[A]: "0.85"

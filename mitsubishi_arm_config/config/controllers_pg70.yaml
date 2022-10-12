@@ -1,0 +1,20 @@
+controller_list:
+ - name: arm/mitsubishi_trajectory_controller
+   action_ns: follow_joint_trajectory
+   type: FollowJointTrajectory
+   default: true
+   joints:
+     - j1
+     - j2
+     - j3
+     - j4
+     - j5
+     - j6
+ 
+
+ - name: pg70/pg70_controller
+   action_ns: gripper_cmd 
+   type: GripperCommand
+   default: true
+   joints:
+     - schunk_pg70_finger_left_joint

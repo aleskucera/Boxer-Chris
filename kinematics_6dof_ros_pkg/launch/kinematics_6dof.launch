@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Define planning_group -->
+	<arg name="planning_group"/>
+	<!-- In case joint limits aren't loaded elsewhere -->
+	<arg name="define_joint_limits" default="false"/>
+
+	<!-- In case kinematics isn't defined elsewhere -->
+	<arg name="define_kinematics" default="false"/>
+
+	<!-- Define kinematics.yaml location -->
+	<arg name="kinematics_configuration_file" default="$(find kinematics_6dof_ros_pkg)/config/kinematics.yaml"/>
+
+	<!-- Define joint_limits.yaml location -->
+	<arg name="joint_limits_file" default="$(find kinematics_6dof_ros_pkg)/config/joint_limits.yaml"/>
+
+	<!-- Load kinematics.yaml on parameter server -->
+	<rosparam ns="/robot_description_kinematics" file="$(arg kinematics_configuration_file)" if="$(arg define_kinematics)"/>
+
+	<!-- Load joint limmits in case it is needed -->
+	<rosparam ns="/robot_description_planning" file="$(arg joint_limits_file)" if="$(arg define_joint_limits)"/>
+
+	<!-- Start the kinematics server node -->
+	<node name="kinematics_server" pkg="kinematics_6dof_ros_pkg" type="kinematics_server.py" respawn="false" output="screen" required="True" args="$(arg planning_group)"/>
+
+</launch>

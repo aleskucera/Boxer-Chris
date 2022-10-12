@@ -1,0 +1,16 @@
+# Publish all joint states -----------------------------------
+pg70_joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50.0 
+    #
+# Position Controllers ---------------------------------------
+pg70Left_position_controller:
+  type: position_controllers/JointPositionController
+  joint: schunk_pg70_finger_left_joint
+pg70Right_position_controller:
+  type: position_controllers/JointPositionController
+  joint: schunk_pg70_finger_right_joint
+
+pg70_controller:
+        type: position_controllers/GripperActionController
+        joint: schunk_pg70_finger_left_joint

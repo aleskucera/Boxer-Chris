@@ -1,0 +1,335 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <property name="PI" value="3.1415926535897931" />
+  <property name="offset_from_limit" value="5.0" />
+  <property name="joint_velocity" value="5.0" />
+  <property name="J4d" value="0.083" />
+
+  <!-- base_link -->
+  <link name="base_link" >
+    <visual>
+      <geometry>
+          <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_base.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <origin rpy="${PI/2} 0 ${PI/2}"/>
+      <material name="gray">
+          <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+          <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_base.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <origin rpy="${PI/2} 0 ${PI/2}"/>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 1" rpy="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia
+          ixx="1.0" ixy="0.0" ixz="0.0"
+          iyy="1.0" iyz="0.0"
+          izz="1.0"/>
+  </inertial>
+  </link>
+
+  <joint name="j1" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="1000.0" lower="${(-170+offset_from_limit)*PI/180}" upper="${(170-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="base_link"/>
+      <child link="shoulder"/>
+      <origin xyz="0 0 ${0.239}"/>
+      <dynamics damping="100.0" friction="100.0" />
+  </joint>
+
+  <!-- shoulder-->
+  <link name="shoulder">
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_shoulder.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="0.0 0	0.038" rpy="${PI/2} 0 ${PI/2}"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <collision>
+          <geometry>
+				  <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_shoulder.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+          <origin xyz="0 0 0.038" rpy="${PI/2} 0 ${PI/2}"/>
+      </collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+  </link>
+
+  <joint name="j2" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="1000.0" lower="${-92*PI/180}" upper="${(135-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="shoulder"/>
+      <child link="upper_arm"/>
+      <origin xyz="0.085 0 0.111" rpy="${PI/2} 0 ${PI}"/>
+      <dynamics damping="100.0" friction="100.0" />
+  </joint>
+
+
+  <!-- upper_arm -->
+  <link name="upper_arm">
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_no1arm_col.dae" scale="0.001 0.001 0.001"/>
+          </geometry>
+          <origin xyz="0 0 0.113" rpy="0 ${-PI/2} 0"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <collision>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_no1arm.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+          <origin xyz="0 0 0.113" rpy="0 ${-PI/2} 0"/>
+      </collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+  </link>
+
+  <joint name="j3" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="1000.0" lower="${(-129+offset_from_limit)*PI/180}" upper="${(166-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="upper_arm"/>
+      <child link="elbow"/>
+      <origin xyz="${0} 0.380 0" rpy="0 0 ${PI/2}"/>
+      <dynamics damping="100.0" friction="100.0" />
+  </joint>
+
+  <!-- elbow -->
+  <link name="elbow">
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_elbow.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="0 0 ${0.1+0.0055}" rpy="0 ${-PI/2} ${PI}"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <collision>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_elbow.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="0 0 ${0.1+0.0055}" rpy="0 ${-PI/2} ${PI}"/>
+      </collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+  </link>
+
+  <joint name="j4" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="1000.0" lower="${(-160+offset_from_limit)*PI/180}" upper="${(160-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="elbow"/>
+      <child link="fore_arm"/>
+      <origin xyz="${J4d} ${-0.1} -0.0"  rpy="0 ${PI/2} 0"/>
+      <dynamics damping="100.0" friction="100.0" />
+  </joint>
+
+  <!-- fore_arm -->
+  <link name="fore_arm">
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_joint_arm.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="-0.006 0 0" rpy="0 0 0"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_no2arm.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="0.001 0 ${0.1265}" rpy="${PI/2} 0 ${PI}"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <collision>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_joint_arm.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="-0.006 0 0" rpy="0 0 0"/>
+      </collision>
+      <collision>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_no2arm.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="0.001 0 ${0.1265}" rpy="${PI/2} 0 ${PI}"/>
+      </collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+  </link>
+
+  <joint name="j5" type="revolute">
+      <axis xyz="-1 0 0"/>
+      <limit effort="1000.0" lower="${(-110+offset_from_limit)*PI/180}" upper="${(110-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="fore_arm"/>
+      <child link="wrist"/>
+      <origin xyz="0.0 ${0} ${0.425-J4d}"  rpy="0.0 0 0"/>
+      <dynamics damping="100.0" friction="100.0" />
+  </joint>
+
+  <!-- wrist -->
+  <link name="wrist">
+      <visual>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_wrist.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="-0.0065 0 0" rpy="0 0 ${-PI/2}"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </visual>
+      <collision>
+          <geometry>
+              <mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_wrist.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+					<origin xyz="-0.0065 0 0" rpy="0 0 ${-PI/2}"/>
+          <material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+      </collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+  </link>
+
+	<!-- disc -->
+	<link name="disc">
+			<visual>
+					<geometry>
+							<mesh filename="package://mitsubishi_arm_description/meshes/rv-6sdl/rv-6sdl_disc.stl" scale="0.001 0.001 0.001"/>
+					</geometry>
+					<origin xyz="0.00 0 0.0"  rpy="${-PI/2} 0 ${0}"/>
+					<material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+			</visual>
+			<collision>
+					<geometry>
+						<mesh filename="package://mitsubishi_arm_description/collision/rv-6sdl/rv-6sdl_disc.stl" scale="0.001 0.001 0.001"/>
+					</geometry>
+					<origin xyz="0.00 0 0.0"  rpy="${-PI/2} 0 ${0}"/>
+					<material name="grey">
+              <color rgba="0.7 0.7 0.7 1"/>
+          </material>
+			</collision>
+      <inertial>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <mass value="0.01"/>
+          <inertia
+              ixx="1.0" ixy="0.0" ixz="0.0"
+              iyy="1.0" iyz="0.0"
+              izz="1.0"/>
+      </inertial>
+	</link>
+
+
+  <joint name="j6" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="1000.0" lower="${(-360+offset_from_limit)*PI/180}" upper="${(360-offset_from_limit)*PI/180}" velocity="${joint_velocity}"/>
+      <parent link="wrist"/>
+      <child link="disc"/>
+      <origin xyz="${0.0} ${-0.0000} 0.062"  rpy="0 0 0"/>
+      <dynamics damping="10.0" friction="100.0" />
+  </joint>
+
+
+  <transmission name="tran1">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j1">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor1">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+  <transmission name="tran2">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j2">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor2">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+  <transmission name="tran3">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j3">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor3">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+  <transmission name="tran4">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j4">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor4">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+  <transmission name="tran5">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j5">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor5">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+  <transmission name="tran6">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="j6">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor6">
+          <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </actuator>
+  </transmission>
+
+</robot>

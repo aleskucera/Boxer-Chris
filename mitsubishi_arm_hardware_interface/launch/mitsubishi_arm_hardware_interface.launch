@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="dummy" default="false"/>
+  <arg name="gui" default="False" />
+  <arg name="type" default="rv_6sdl_pg70"/>
+
+	<group if="$(eval 'rv_6sdl' in arg('type'))">
+  <include file="$(find mitsubishi_arm_hardware_interface)/launch/mitsubishi_arm_hardware_interface_rv6sdl.launch">
+      <arg name="dummy" value="$(arg dummy)"/>
+      <arg name="gui" value="$(arg gui)"/>
+	</include>
+	</group>
+
+
+	<group unless="$(eval 'rv_6sdl' in arg('type'))">
+  <include file="$(find mitsubishi_arm_hardware_interface)/launch/mitsubishi_arm_hardware_interface_rv6s.launch">
+      <arg name="dummy" value="$(arg dummy)"/>
+      <arg name="gui" value="$(arg gui)"/>
+	</include>
+	</group>
+
+</launch>
