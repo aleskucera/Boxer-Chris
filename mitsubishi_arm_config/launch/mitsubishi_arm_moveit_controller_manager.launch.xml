@@ -1,9 +1,0 @@
-<launch>
-	<arg name="type" default="rv_6sdl_pg70"/>
-	<!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
-	<arg  name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
-	<param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
-	<!-- load controller_list -->
-	<rosparam file="$(find mitsubishi_arm_config)/config/controllers_pg70.yaml" if="$(eval 'pg70' in arg('type'))"/>
-	<rosparam file="$(find mitsubishi_arm_config)/config/controllers.yaml" unless="$(eval 'pg70' in arg('type'))"/>
-</launch>

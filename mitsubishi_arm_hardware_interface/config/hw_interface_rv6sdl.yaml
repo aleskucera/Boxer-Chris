@@ -1,4 +1,0 @@
-mitsubishi_arm/mitsubishi_port: "10003"
-mitsubishi_arm/mitsubishi_host: "192.168.0.1"
-mitsubishi_arm/mitsubishi_mtx_port: "10000"
-mitsubishi_arm/max_speed: 0.3

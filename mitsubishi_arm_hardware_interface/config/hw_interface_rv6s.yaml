@@ -1,3 +1,0 @@
-mitsubishi_arm/mitsubishi_com_port: "/dev/ttyUSB_robot"
-mitsubishi_arm/mitsubishi_baud_rate: "38400"
-mitsubishi_arm/max_speed: 1

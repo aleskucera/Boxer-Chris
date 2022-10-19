@@ -1,8 +1,0 @@
-
-# List of IO channels to write.
-int8[] channel
-
-# List of state
-int8[] state
----
-bool retval
