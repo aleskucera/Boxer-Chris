@@ -47,6 +47,9 @@ from robCRSgripper import robCRSgripper
 from robotBosch import robotBosch
 from robotCRS import robCRS93, robCRS97
 
+from src import Commander, robCRS93, robCRS97, robotBosch, robCRSgripper, Graph, poly, b_spline, p_spline, \
+    move_point_to_point, move_spline, circle_trajectory, line_trajectory
+
 
 def move_point_to_point(trajectory, commander):
     commander.move_to_pos(trajectory[0])

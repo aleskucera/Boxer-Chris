@@ -58,7 +58,7 @@ def detect_squares(contours):
 
 def main():
     # Load image
-    image = cv2.imread('../imgs_for_our_dear_Ales/5.png')[..., ::-1]
+    image = cv2.imread('imgs_for_our_dear_Ales/5.png')[..., ::-1]
 
     # Threshold image
     threshold = treshold_image(image)
