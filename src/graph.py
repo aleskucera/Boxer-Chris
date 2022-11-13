@@ -29,13 +29,12 @@ import matplotlib.ticker as ticker
 import numpy as np
 from matplotlib.widgets import Slider, Button, RadioButtons
 
-from interpolation import *
+from .interpolation import interpolate_b_spline, interpolate_p_spline, interpolate_poly
 
 ''' Module provides graphing functions for spline trajectory visualisation '''
 
 
 class Graph:
-
     """
     Class for graphing interface for spline trajectory. User can adjust interpolation algorithm and parameters.
     """
@@ -46,31 +45,31 @@ class Graph:
         self.init_offset = self.sol[0]
         self.order = 2
         self.n_polynom, self.n_joints = self.sol.shape
-        self.n_seg = int(len(self.sol)/3)
+        self.n_seg = int(len(self.sol) / 3)
         self.lambda_ = 0.1
 
     def update(self, ax, fig, init=False):
         """
-        Helper function for graph update after parameter change.
-        :param ax: Axis to update.
-        :param fig: Figure to update.
-        :param init: Whether to initialize plots or use existing.
+        Helper function for graph update after parameter change
+        :param ax: Axis to update
+        :param fig: Figure to update
+        :param init: Whether to initialize plots or use existing
         """
 
-        res = 100  # discretisation of x axis
+        res = 100  # discretisation of x-axis
         if self.spline == 'poly':
-            params = poly.interpolate(self.sol)
+            params = interpolate_poly(self.sol)
             self.order = 3
             ax.set_title('3rd order polynomial')
         if self.spline == 'b-spline':
-            params = b_spline.interpolate(self.sol, order=self.order)
+            params = interpolate_b_spline(self.sol, order=self.order)
             ax.set_title('%s order B-spline' % (str(self.order) + ('nd' if self.order == 2 else 'rd')))
         if self.spline == 'p-spline':
             num_segments = self.n_seg
             poly_deg = self.order
             penalty_order = 2
             lambda_ = self.lambda_
-            params = p_spline.interpolate(self.sol, num_segments, poly_deg, penalty_order, lambda_)
+            params = interpolate_p_spline(self.sol, num_segments, poly_deg, penalty_order, lambda_)
             ax.set_title('%s order P-spline' % (str(self.order) + ('nd' if self.order == 2 else 'rd')))
 
         if self.order == 2:
@@ -78,7 +77,7 @@ class Graph:
         if self.order == 3:
             t = np.vstack((np.linspace(0, 1, res), np.linspace(0, 1, res) ** 2, np.linspace(0, 1, res) ** 3))
 
-        # shrinking of x axis is compensated
+        # shrinking of x-axis is compensated
         t_long = np.linspace(0, self.n_polynom - 1, params.shape[0] * res)
 
         y = np.empty((self.n_joints, 0))
@@ -93,13 +92,13 @@ class Graph:
         if init:
             self.plot = []
             for k in range(self.n_joints):
-                self.plot += plt.plot(t, self.sol.T[k],'k')
+                self.plot += plt.plot(t, self.sol.T[k], 'k')
                 self.plot += plt.plot(t_long, y[k])
 
         else:
             for k in range(self.n_joints):
-                self.plot[2*k].set_data(t, self.sol.T[k])
-                self.plot[2*k+1].set_data(t_long, y[k])
+                self.plot[2 * k].set_data(t, self.sol.T[k])
+                self.plot[2 * k + 1].set_data(t_long, y[k])
 
         fig.canvas.draw_idle()
 
@@ -116,11 +115,11 @@ class Graph:
         # plt.axis([0, 1, -10, 10])
 
         axcolor = 'lightgoldenrodyellow'
-        ax_lambda = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)  # type: Axes
-        ax_n_seg = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)  # type: Axes
+        ax_lambda = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+        ax_n_seg = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
 
         s_lam = Slider(ax_lambda, 'lambda', 0.001, 1.0, valinit=0.1)
-        s_seg = Slider(ax_n_seg, 'number of segments', 1, len(self.sol), valinit=int(len(self.sol)/3))
+        s_seg = Slider(ax_n_seg, 'number of segments', 1, len(self.sol), valinit=int(len(self.sol) / 3))
 
         def sel_l_seg(val):
             self.lambda_ = s_lam.val
@@ -133,10 +132,10 @@ class Graph:
         resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
         button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
 
-
         def reset(event):
             s_lam.reset()
             s_seg.reset()
+
         button.on_clicked(reset)
 
         r_ord = plt.axes([0.025, 0.35, 0.15, 0.15], facecolor=axcolor)

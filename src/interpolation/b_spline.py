@@ -29,6 +29,7 @@
 import numpy as np
 from utils import param_correction
 
+
 def _b_spline_2(x):
     """
     2nd order B-spline interpolation.
@@ -45,12 +46,12 @@ def _b_spline_2(x):
     M1 = np.array([[1, -2, 1], [1, 2, -2], [0, 0, 1]])
     M2 = np.array([[1, -2, 1], [1, 2, -3], [0, 0, 2]])
 
-    lst = [0.5*x.T[:,0:3].dot(M0)]
+    lst = [0.5 * x.T[:, 0:3].dot(M0)]
 
-    for i in range(1,n-3):
-        lst.append(0.5*x.T[:,i:i+3].dot(M1))
+    for i in range(1, n - 3):
+        lst.append(0.5 * x.T[:, i:i + 3].dot(M1))
 
-    lst.append(0.5 * x.T[:,-3:].dot(M2))
+    lst.append(0.5 * x.T[:, -3:].dot(M2))
 
     return lst
 
@@ -96,15 +97,15 @@ def _b_spline_3(x):
     lst.append(1.0 / 12.0 * x.T[:, 1:5].dot(M1))
 
     for i in range(2, n - 5):
-        lst.append(1.0/12.0 * x.T[:, i:i + 4].dot(M2))
+        lst.append(1.0 / 12.0 * x.T[:, i:i + 4].dot(M2))
 
-    lst.append(1.0/12.0 * x.T[:, -5:-1].dot(M3))
-    lst.append(1.0/12.0 * x.T[:, -4:].dot(M4))
+    lst.append(1.0 / 12.0 * x.T[:, -5:-1].dot(M3))
+    lst.append(1.0 / 12.0 * x.T[:, -4:].dot(M4))
 
     return lst
 
 
-def interpolate(points, order):
+def interpolate_b_spline(points, order):
     """
     Interpolation of points using B-spline.
     :param points: Points to interpolate.

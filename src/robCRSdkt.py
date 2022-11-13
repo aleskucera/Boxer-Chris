@@ -26,48 +26,35 @@
 
 import numpy as np
 
-#  based on BlueBot and Bosch Toolbox
-#  by  O. Certik, V. Smutny, P. Krsek, M. Matousek
 
-
-def robotBoschikt(robot, pos):
+def robCRSdkt(robot, pos):
     """
-    Inverse kinematic task for robot Bosch.
-    :param robot: Robot Bosch instance.
-    :param pos: Coordinates of robot position in world coordinates.
-    :return: Coordinates of robot position in joint coordinates (degrees).
+    Direct kinematic task - robot CRS
+    :param robot: CRS robot instance
+    :param pos: Coordinates of robot position in joint coordinates (degrees)
+    :return: Coordinates of robot position in world coordinates
     """
+    T = np.eye(4)
+    pos = np.array(pos) / 180.0 * np.pi
 
-    pos = np.array(pos).astype(float)
-    c = np.sqrt(pos[0] ** 2 + pos[1] ** 2)
-    v = (c ** 2 - robot.L1 ** 2 - robot.L2 ** 2) / (2 * robot.L1 * robot.L2)
-    if abs(v) > 1.0:
-        return []
-
-    b = np.arccos(v) * 180.0 / np.pi
-    g = np.arccos((c ** 2 + robot.L1 ** 2 - robot.L2 ** 2) / (2 * robot.L1 * c)) * 180.0 / np.pi
-
-    if pos[0] == 0:
-        d = 90.0 * np.sign(pos[1])
-    else:
-        d = np.arctan(pos[1] / pos[0]) * np.sign(pos[0]) * 180.0 / np.pi
-
-    deg = np.empty((2,4))
-    deg[0, 3] = pos[3]
-    deg[0, 2] = -pos[2]
-    deg[0, 1] = b
-    deg[0, 0] = 90.0 - d - g
-    deg[1, 3] = pos[3]
-    deg[1, 2] = -pos[2]
-    deg[1, 1] = -b
-    deg[1, 0] = 90.0 - d + g
-
-    if pos[0] != 0:
-        deg[:, :2] = deg[:, :2] * np.sign(pos[0])
-
-    if pos[0] < 0:
-        p = deg[0, :]
-        deg[0, :] = deg[1, :]
-        deg[1, :] = p
-
-    return deg
+    for i in range(6):
+        tz = np.eye(4)
+        tz[2, 3] = robot.d[i]
+        rz = np.eye(4)
+        o = -robot.offset[i]
+        rz[:2, :2] = np.array([[np.cos(o + pos[i]), -np.sin(o + pos[i])],
+                               [np.sin(o + pos[i]), np.cos(o + pos[i])]])
+        tx = np.eye(4)
+        tx[0, 3] = robot.a[i]
+        rx = np.eye(4)
+        a = robot.alpha[i]
+        rx[1:3, 1:3] = np.array([[np.cos(a), -np.sin(a)],
+                                 [np.sin(a), np.cos(a)]])
+        T = T.dot(tz).dot(rz).dot(tx).dot(rx)
+    T = T.dot(robot.tool)
+    coord = T[:3, 3]
+    a3 = np.arctan2(T[1, 0], T[0, 0]) / np.pi * 180
+    a4 = np.arcsin(-T[2, 0]) / np.pi * 180
+    a5 = np.arctan2(T[2, 1], T[2, 2]) / np.pi * 180
+    coord = np.hstack((coord, a3, a4, a5))
+    return coord

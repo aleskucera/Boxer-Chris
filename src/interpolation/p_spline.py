@@ -32,9 +32,9 @@ import numpy as np
 from utils import param_correction
 
 M_trans = {
-    2: np.array([[0.5, -1.0, 0.5],[-1.0, 1.0, 0.0],[0.5, 0.5, 0.0]]),
-    3: np.array([[-1.0/6.0, 0.5, -0.5, 1.0/6.0],[0.5, -1.0, 0.5, 0.0],
-                 [-0.5, 0.0, 0.5, 0.0],[1.0/6.0, 2.0/3.0, 1.0/6.0, 0.0]])
+    2: np.array([[0.5, -1.0, 0.5], [-1.0, 1.0, 0.0], [0.5, 0.5, 0.0]]),
+    3: np.array([[-1.0 / 6.0, 0.5, -0.5, 1.0 / 6.0], [0.5, -1.0, 0.5, 0.0],
+                 [-0.5, 0.0, 0.5, 0.0], [1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0, 0.0]])
 }
 
 
@@ -51,21 +51,21 @@ def _b_spline(n, ndx, bdeg):
     xl = 0.0
     xr = float(n - 1)
 
-    dx = (xr - xl)/ndx
-    t = xl + dx*np.arange(-bdeg, ndx+1)
+    dx = (xr - xl) / ndx
+    t = xl + dx * np.arange(-bdeg, ndx + 1)
     Bs = np.empty((len(xs), t.shape[0]))
     r = np.arange(1, len(t))
     r = np.append(r, 0)
-    T = (0*xs[0] + 1)*t
+    T = (0 * xs[0] + 1) * t
     for i, x in enumerate(xs):
-        X = x*(0*t + 1)
-        P = (X - T)/dx
+        X = x * (0 * t + 1)
+        P = (X - T) / dx
         B = np.array((T <= X) & (X < (T + dx))).astype(float)
         if np.count_nonzero(B) > 1:
             B /= np.sum(B)
-        for k in range(1, bdeg+1):
-            B = (np.multiply(P, B) + np.multiply((k + 1 - P), B[r]))/k
-        Bs[i,:] = B
+        for k in range(1, bdeg + 1):
+            B = (np.multiply(P, B) + np.multiply((k + 1 - P), B[r])) / k
+        Bs[i, :] = B
     return Bs
 
 
@@ -84,7 +84,7 @@ def _p_spline(ndx, bdeg, pord, lam, y):
     B = _b_spline(n, ndx, bdeg)
     m, n = B.shape
     D = np.diff(np.eye(n), pord).T
-    a = np.linalg.inv(B.T.dot(B) + lam*D.T.dot(D)).dot(B.T.dot(y))
+    a = np.linalg.inv(B.T.dot(B) + lam * D.T.dot(D)).dot(B.T.dot(y))
     # yhat = B.dot(a)
     # Q = np.linalg.inv(B.T.dot(B) + lam*D.T.dot(D))
     # s = np.sum((y - yhat)**2)
@@ -93,7 +93,7 @@ def _p_spline(ndx, bdeg, pord, lam, y):
     return a
 
 
-def interpolate(points, num_segments, poly_deg, p_ord, lambda_):
+def interpolate_p_spline(points, num_segments, poly_deg, p_ord, lambda_):
     """
     Interpolation of points using P-spline.
     :param points: Points to interpolate.
@@ -113,10 +113,10 @@ def interpolate(points, num_segments, poly_deg, p_ord, lambda_):
     a = _p_spline(num_segments, poly_deg, p_ord, lambda_, points)
     Mn = M_trans[poly_deg]
 
-    param = np.empty((0, dim*poly_deg))
+    param = np.empty((0, dim * poly_deg))
     for i in range(num_segments):
         c = np.flipud(Mn.dot(a[i:i + poly_deg + 1])).T
-        c = np.reshape(c[:,1:], (dim*poly_deg))
+        c = np.reshape(c[:, 1:], (dim * poly_deg))
         param = np.append(param, [c], axis=0)
 
     param = param_correction(points[0], param, poly_deg)
