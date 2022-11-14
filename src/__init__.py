@@ -5,3 +5,4 @@ from .robCRSgripper import robCRSgripper
 from .robCRSikt import robCRSikt
 from .robotCRS import robCRS93, robCRS97
 from .utils import param_correction
+from .interpolation import interpolate_poly, interpolate_b_spline, interpolate_p_spline

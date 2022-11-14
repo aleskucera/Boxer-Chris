@@ -1,37 +1,11 @@
 #!/usr/bin/env python
 
-# Coordinated Spline Motion and Robot Control Project
-# 
-# Copyright (c) 2017 Olga Petrova <olga.petrova@cvut.cz>
-# Advisor: Pavel Pisa <pisa@cmp.felk.cvut.cz>
-# FEE CTU Prague, Czech Republic
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-#
-# In 2017, project funded by PiKRON s.r.o. http://www.pikron.com/
-
 
 # Script provides functionality for CRS93, CRS97 and Bosch robot initialisation,
 # plus example trajectories and trajectory visualisation for CRS93 and CRS97 robots.
 
 # Usage examples:
-# Initialize robot, go to home position: python test.py -r CRS93
+# Initialize robot, go home: python test.py -r CRS93
 # Show graph of circle_trajectory trajectory skip setup: python test.py -r CRS93 -s -a graph
 # Move along circle_trajectory trajectory point-to-point, skip setup: python test.py -r CRS93 -s -a circle_ptp
 # Move along circle_trajectory trajectory using interpolated trajectory, skip setup: python test.py -r CRS93 -a circle_spline
@@ -39,16 +13,8 @@
 import argparse
 import numpy as np
 
-from CRS_commander import Commander
-# from demo.im_proc import *
-from graph import Graph
-from interpolation import *
-from robCRSgripper import robCRSgripper
-from robotBosch import robotBosch
-from robotCRS import robCRS93, robCRS97
-
-from src import Commander, robCRS93, robCRS97, robotBosch, robCRSgripper, Graph, poly, b_spline, p_spline, \
-    move_point_to_point, move_spline, circle_trajectory, line_trajectory
+from src import Commander, robCRS93, robCRS97, robCRSgripper, Graph, \
+    interpolate_poly, interpolate_b_spline, interpolate_p_spline
 
 
 def move_point_to_point(trajectory, commander):
@@ -62,15 +28,15 @@ def move_spline(trajectory, commander, spline, order):
 
     if spline == 'poly':
         order = 3
-        spline_params = poly.interpolate(trajectory)
+        spline_params = interpolate_poly(trajectory)
     if spline == 'b-spline':
-        spline_params = b_spline.interpolate(trajectory, order=order)
+        spline_params = interpolate_b_spline(trajectory, order=order)
     if spline == 'p-spline':
         num_segments = int(len(trajectory) / 3)
         poly_deg = order
         penalty_order = 2
         lambda_ = 0.1
-        spline_params = p_spline.interpolate(trajectory, num_segments, poly_deg, penalty_order, lambda_)
+        spline_params = interpolate_p_spline(trajectory, num_segments, poly_deg, penalty_order, lambda_)
 
     commander.move_to_pos(trajectory[0])
     commander.wait_ready(sync=True)
@@ -87,7 +53,7 @@ def circle_trajectory(commander, x=500, y0=250, z0=500, r=50, step=10):
     :param y0: Y coordinate of starting point
     :param z0: Z coordinate of starting point
     :param r: radius of circle_trajectory
-    :param step: angle of trajectory discretisation in degrees
+    :param step: angle of trajectory discretization in degrees
     :return: points of trajectory
     """
     pos = [x, y0 + r, z0, 0, 0, 0]
@@ -124,8 +90,6 @@ def line_trajectory(commander, x0, x1, step=5):
 
 
 if __name__ == '__main__':
-
-
 
     help_msg = 'SYNOPSIS: CRS_commander.py [-l /dev/ttyXXX]'
 
@@ -167,12 +131,9 @@ if __name__ == '__main__':
         robot = robCRS97()
     if rob == 'CRS93':
         robot = robCRS93()
-    if rob == 'Bosch':
-        robot = robotBosch()
 
     commander = Commander(robot)  # initialize commander
     commander.open_comm(tty_dev, speed=19200)  # connect to control unit
-
 
     if not skip_setup or action == 'home':
         commander.init(reg_type=reg_type, max_speed=max_speed, hard_home=False)
@@ -181,15 +142,9 @@ if __name__ == '__main__':
         print("Chris is ready for duty!")
 
     t, angles = commander.axis_get_pos()
-    
+
     print("Time: {0}".format(t))
     print("Angles: {0}".format(angles))
-
-    
-
-
-
-    
 
     # if rob in ['CRS97', 'CRS93']:
 
@@ -212,4 +167,3 @@ if __name__ == '__main__':
 
     #     if action == 'purge':
     #         commander.send_cmd("PURGE:\n")
-

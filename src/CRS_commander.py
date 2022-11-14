@@ -46,7 +46,7 @@ class Commander:
         :param rcon: Serial interface.
         """
         self.robot = robot
-        self.rcon = rcon #type: serial.Serial
+        self.rcon = rcon  # type: serial.Serial
         self.stamp = int(time.time() % 0x7fff)
         self.last_trgt_irc = None
         self.coordmv_commands_to_next_check = 0
@@ -95,7 +95,7 @@ class Commander:
             raise ValueError("Wrong number of joints (%d, should be %d)." % (j, self.robot.DOF))
 
         b = np.divide((a - np.repeat(np.array([self.robot.hhirc]), n, axis=0)),
-                        np.repeat(np.array([self.robot.degtoirc]), n, axis=0)) \
+                      np.repeat(np.array([self.robot.degtoirc]), n, axis=0)) \
             + np.repeat(np.array([self.robot.hhdeg]), n, axis=0)
         if n == 1:
             return b[0]
@@ -144,13 +144,13 @@ class Commander:
         """
         self.sync_cmd_fifo()
         if hasattr(self.robot, 'REGPWRON') and self.robot.REGPWRON == 1:
-            self.send_cmd('REGPWRON:%i\n'%self.robot.REGPWRON)
+            self.send_cmd('REGPWRON:%i\n' % self.robot.REGPWRON)
             print('Press ARM POWER button,\n')
             if sys.version_info[0] < 3:
                 raw_input('press enter to continue...')
             else:
                 input('press enter to continue...')
-            self.send_cmd('REGPWRFLG:%i\n'%self.robot.REGPWRFLG)
+            self.send_cmd('REGPWRFLG:%i\n' % self.robot.REGPWRFLG)
 
         print('Resetting motors')
         # Purge
@@ -173,7 +173,7 @@ class Commander:
                         self.send_cmd('%s%s:%i\n' % (f, self.robot.activemotors[i], param_list[i]))
 
         if hasattr(self.robot, 'IDLEREL'):
-            self.send_cmd('IDLEREL:%i\n'%self.robot.IDLEREL)
+            self.send_cmd('IDLEREL:%i\n' % self.robot.IDLEREL)
 
         if hasattr(self.robot, 'gripper_init'):
             if self.robot.verbose:
@@ -189,14 +189,14 @@ class Commander:
         """
         self.stamp = (self.stamp + 1) & 0x7fff
         self.send_cmd('STAMP:%d\n' % self.stamp)
-        buf='\n'
+        buf = '\n'
         while True:
             buf += self.read_resp(1024)
             i = buf.find('\n' + 'STAMP=')
             if i < 0:
                 continue
-            s = '%d'%self.stamp
-            r = buf[i+7:]
+            s = '%d' % self.stamp
+            r = buf[i + 7:]
             j = r.find('\n')
             if j < 0:
                 continue
@@ -204,7 +204,7 @@ class Commander:
             if r == s:
                 break
 
-    def check_ready(self, for_coordmv_queue = False):
+    def check_ready(self, for_coordmv_queue=False):
         """
         Check robot is in "ready" state.
         :param for_coordmv_queue: Boolean, whether to check state for coordinate movement message queue.
@@ -219,7 +219,7 @@ class Commander:
         if a & 0x20000:
             s += 'motion stop, '
         if s:
-            raise Exception('Check ready: %s.'%s[:-2])
+            raise Exception('Check ready: %s.' % s[:-2])
         if for_coordmv_queue:
             return False if a & 0x80 else True
         else:
@@ -233,17 +233,17 @@ class Commander:
         """
         for i in range(self.robot.DOF):
             if self.robot.activemotors[i] != '':
-                if np.imag(params[i]) or params[i] == 0: # relative speed
+                if np.imag(params[i]) or params[i] == 0:  # relative speed
                     r = np.imag(params[i])
                     if r < 0 or r > 1:
-                        raise  Exception('Relative speed %i out of <0;1>'%i)
+                        raise Exception('Relative speed %i out of <0;1>' % i)
                     params[i] = round(self.robot.minspeed[i] * (1 - r) + self.robot.maxspeed[i] * r)
-                    self.send_cmd('%s%s:%i\n'%('REGMS', self.robot.activemotors[i], params[i]))
+                    self.send_cmd('%s%s:%i\n' % ('REGMS', self.robot.activemotors[i], params[i]))
                 elif not force and (params[i] < self.robot.minspeed[i] or params[i] > self.robot.maxspeed[i]):
                     # speed is not inside lower and upper bound
-                    raise Exception('Speed %d is out of bound'%i)
-                else: # set the speed
-                    self.send_cmd('%s%s:%i\n'%('REGMS', self.robot.activemotors[i], params[i]))
+                    raise Exception('Speed %d is out of bound' % i)
+                else:  # set the speed
+                    self.send_cmd('%s%s:%i\n' % ('REGMS', self.robot.activemotors[i], params[i]))
 
     def set_acc_par(self, params, force=False):
         """
@@ -256,14 +256,15 @@ class Commander:
                 if np.imag(params[i]) or params[i] == 0:  # relative acceleration
                     r = np.imag(params[i])
                     if r < 0 or r > 1:
-                        raise  Exception('Relative acceleration %i out of <0;1>'%i)
+                        raise Exception('Relative acceleration %i out of <0;1>' % i)
                     params[i] = round(self.robot.minacceleration[i] * (1 - r) + self.robot.maxacceleration[i] * r)
-                    self.send_cmd('%s%s:%i\n'%('REGACC', self.robot.activemotors[i], params[i]))
-                elif not force and (params[i] < self.robot.minacceleration[i] or params[i] > self.robot.maxacceleration[i]):
+                    self.send_cmd('%s%s:%i\n' % ('REGACC', self.robot.activemotors[i], params[i]))
+                elif not force and (
+                        params[i] < self.robot.minacceleration[i] or params[i] > self.robot.maxacceleration[i]):
                     # acceleration is not inside lower and upper bound
-                    raise Exception('Acceleration %d is out of bound'%i)
-                else: # set the speed
-                    self.send_cmd('%s%s:%i\n'%('REGACC', self.robot.activemotors[i], params[i]))
+                    raise Exception('Acceleration %d is out of bound' % i)
+                else:  # set the speed
+                    self.send_cmd('%s%s:%i\n' % ('REGACC', self.robot.activemotors[i], params[i]))
 
     def init_communication(self):
         """
@@ -321,7 +322,7 @@ class Commander:
         else:
             self.coordmv_commands_to_next_check -= 1
             return
-        while not self.check_ready(for_coordmv_queue = True):
+        while not self.check_ready(for_coordmv_queue=True):
             if not throttled:
                 print('coordmv queue full - waiting')
             throttled = True
@@ -336,14 +337,14 @@ class Commander:
         :param disc: Discontinuity of movement, internal parameter, is to be found in control unit docs.
         """
         self.throttle_coordmv()
-        self.send_cmd('COORDISCONT:%d'%disc + '\n')
+        self.send_cmd('COORDISCONT:%d' % disc + '\n')
         cmd = 'COORDMV' if not relative else 'COORDRELMVT'
         if (min_time is not None) and not relative:
             cmd += 'T'
         cmd += ':'
         if (min_time is not None) or relative:
             if min_time is None:
-                min_time=0
+                min_time = 0
             cmd += str(int(round(min_time)))
             if len(pos) > 0:
                 cmd += ','
@@ -391,7 +392,7 @@ class Commander:
             axis_lst = self.robot.coord_axes
         resp = self.query('COORDAP')
         try:
-            resp = np.array(map(int,resp.split(',')))
+            resp = np.array(map(int, resp.split(',')))
         except:
             print('Error responce', resp)
         t = resp[0]
@@ -443,12 +444,12 @@ class Commander:
             i = buf.find('\n' + query + '=')
             if i < 0:
                 continue
-            j = buf[i+1:].find('\n')
+            j = buf[i + 1:].find('\n')
             if j != -1:
                 break
-        if buf[i+1+j-1] == '\r':
+        if buf[i + 1 + j - 1] == '\r':
             j -= 1
-        res = buf[i+2+len(query):i+1+j]
+        res = buf[i + 2 + len(query):i + 1 + j]
         return res
 
     def command(self, command):
@@ -526,7 +527,7 @@ class Commander:
         if not hasattr(self.robot, 'gripper_ax'):
             raise Exception('This robot has no gripper_ax defined.')
 
-        self.send_cmd('\nR%s:\n'%self.robot.gripper_ax)
+        self.send_cmd('\nR%s:\n' % self.robot.gripper_ax)
         self.rcon.timeout = 2
 
         s = self.read_resp(1024)
@@ -534,7 +535,7 @@ class Commander:
         if s.find('R%s!\r\n' % self.robot.gripper_ax) >= 0:
             last = float('inf')
             while True:
-                self.send_cmd('AP%s?\n'%self.robot.gripper_ax)
+                self.send_cmd('AP%s?\n' % self.robot.gripper_ax)
                 s = self.read_resp(1024)
 
                 if s.find('\nFAIL!') >= 0:
@@ -542,15 +543,15 @@ class Commander:
                 ifs = s.find('AP%s=' % self.robot.gripper_ax)
                 if ifs >= 0:
                     ifl = s.find('\r\n')
-                    p = float(s[ifs+4:ifl])
+                    p = float(s[ifs + 4:ifl])
                 if abs(last - p) < self.robot.gripper_poll_diff:
                     break
                 last = p
-            time.sleep(self.robot.gripper_poll_time/100)
+            time.sleep(self.robot.gripper_poll_time / 100)
 
         elif s.find('\nFAIL!') >= 0:
             self.wait_ready()
-            raise Exception('Command \'R:%s\' returned \'FAIL!\''%self.robot.gripper_ax)
+            raise Exception('Command \'R:%s\' returned \'FAIL!\'' % self.robot.gripper_ax)
 
     def open_comm(self, tty_dev, speed=19200):
         """
