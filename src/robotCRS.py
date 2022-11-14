@@ -28,9 +28,9 @@
 
 import numpy as np
 
-from robCRSdkt import robCRSdkt
-from robCRSgripper import robCRSgripper, robCRSgripperinit
-from robCRSikt import robCRSikt
+from .robCRSdkt import robCRSdkt
+from .robCRSgripper import robCRSgripper, robCRSgripperinit
+from .robCRSikt import robCRSikt
 
 
 #  based on BlueBot and Bosch Toolbox

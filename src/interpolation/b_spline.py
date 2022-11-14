@@ -27,7 +27,7 @@
 ''' Module provides functions for points interpolation using b-splines of 2nd and 3rd order '''
 
 import numpy as np
-from utils import param_correction
+from .utils import param_correction
 
 
 def _b_spline_2(x):

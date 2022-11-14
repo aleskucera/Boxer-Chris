@@ -27,7 +27,7 @@
 ''' Module provides functions for points interpolation using splines of 3rd order '''
 
 import numpy as np
-from utils import param_correction
+from .utils import param_correction
 
 
 # Tri Diagonal Matrix Algorithm solver

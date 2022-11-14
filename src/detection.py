@@ -51,7 +51,7 @@ def filter_squares(contours, min_area: float = 1000, max_ratio: float = 0.2) -> 
     return squares
 
 
-def process_mask(image: np.ndarray, threshold: int, open_kernel: tuple = (2, 2),
+def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (2, 2),
                  close_kernel: tuple = (40, 40)) -> np.ndarray:
     img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
@@ -73,50 +73,39 @@ def find_contours(image: np.ndarray) -> list:
     return contours
 
 
-def detect_squares(image: np.ndarray, color: str) -> tuple:
-    cfg = yaml.safe_load(open('../conf/hsv_limits.yaml', 'r'))
-    lower = tuple(cfg[color]['lower'])
-    upper = tuple(cfg[color]['upper'])
-    threshold = cfg[color]['threshold']
+def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
 
+    # Load configuration
+    cfg = yaml.safe_load(open(config_file, 'r'))
+    limits = cfg['limits'][color]
+    lower = tuple(limits['lower'])
+    upper = tuple(limits['upper'])
+    thresh = limits['threshold']
+
+    # Filter color based od HSV limits
     mask = color_mask(image.copy(), lower, upper)
-    mask = cv2.bitwise_and(image, image, mask=mask)
-    threshold = process_mask(mask, threshold)
-    contours = find_contours(threshold)
+    filtered_image = cv2.bitwise_and(image, image, mask=mask)
+
+    # Threshold image
+    thresh = threshold(filtered_image, thresh)
+
+    # Find contours
+    contours = find_contours(thresh)
+
+    # Filter squares
     squares = filter_squares(contours)
 
-    return squares, threshold, mask
+    return squares, thresh, contours, filtered_image
 
+def filter_edges(image: np.ndarray, threshold1: int, threshold2: int) -> np.ndarray:
+    img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(img, threshold1, threshold2)
+    return edges
 
-def squares_demo(image: np.ndarray, color: str) -> None:
-    # Detect squares
-    original = image.copy()
-    squares, threshold, mask = detect_squares(image, color)
-
-    if color in ['red', 'orange', 'yellow']:
-        plt_color = (112, 25, 25)
-    else:
-        plt_color = (175, 0, 255)
-
-    # Plot the results
-    for square in squares:
-        cv2.drawContours(image, [square.contour], -1, plt_color, 3)
-        cv2.circle(image, (int(square.x), int(square.y)), 8, plt_color, -1)
-        for i in range(4):
-            cv2.circle(image, (int(square.corners[i, 0]), int(square.corners[i, 1])), 8, plt_color, -1)
-
-    images = [original[..., ::-1], mask[..., ::-1], threshold, image[..., ::-1]]
-    titles = ['Original Image', 'Filtered Color', 'Processed Color Mask', 'Detected Squares']
-
-    for i, img in enumerate(images):
-        plt.subplot(2, 2, i + 1)
-        plt.imshow(img)
-        plt.xticks([]), plt.yticks([])
-        plt.title(titles[i])
-
-    plt.show()
 
 
 if __name__ == '__main__':
     image = cv2.imread('../imgs_for_our_dear_Ales/1.png')
-    squares_demo(image, 'orange')
+    edges_demo(image)
+
+

@@ -29,7 +29,7 @@
 # based on Eilers and Marx, Flexible Smoothing with B-splines and Penalties, 1996
 
 import numpy as np
-from utils import param_correction
+from .utils import param_correction
 
 M_trans = {
     2: np.array([[0.5, -1.0, 0.5], [-1.0, 1.0, 0.0], [0.5, 0.5, 0.0]]),

@@ -1,0 +1,30 @@
+limits:
+  yellow:
+    lower: [ 15, 190, 118 ]
+    upper: [ 25, 255, 255 ]
+    threshold: 40
+  orange:
+    lower: [ 0, 210, 180 ]
+    upper: [ 8, 255, 255 ]
+    threshold: 40
+  red:
+    lower: [ 0, 100, 80 ]
+    upper: [ 5, 255, 180 ]
+    threshold: 40
+  blue:
+    lower: [ 110, 150, 30 ]
+    upper: [ 140, 200, 150 ]
+    threshold: 10
+  green:
+    lower: [ 70, 100, 30 ]
+    upper: [ 105, 150, 100 ]
+    threshold: 10
+
+lengths:
+  1: 53.96
+  2: 60.19
+  3: 66.13
+  5: 77.22
+  6: 86.17
+  7: 95.59
+  8: 104.96
