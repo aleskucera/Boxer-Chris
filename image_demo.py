@@ -45,5 +45,6 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
 
 
 if __name__ == '__main__':
+    colors_to_show = np.array(['red', 'blue', 'yellow', 'orange'])
     image = cv2.imread('imgs_for_our_dear_Ales/2.png')
-    squares_demo(image, 'yellow', 'conf/main.yaml')
+    squares_demo(image, 'blue', 'conf/main.yaml')
