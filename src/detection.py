@@ -1,18 +1,18 @@
 import cv2
 import yaml
 import numpy as np
-from dataclasses import dataclass
+# from dataclasses import dataclass
 
 
-@dataclass
 class Square:
-    x: float
-    y: float
-    width: float
-    height: float
-    rotation: float
-    contour: np.ndarray
-    corners: np.ndarray
+    def __init__(self, x, y, width, height, rotation, contour, corners):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.rotation = rotation
+        self.contour = contour
+        self.corners = corners
 
     @property
     def area(self):
