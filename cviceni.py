@@ -15,7 +15,7 @@ print(np.min(img))
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-k = 3
+k = 5
 ax.scatter(img[::k, ::k, 0].flatten(), img[::k, ::k, 1].flatten(), img[::k, ::k, 2].flatten(),
            c=img[::k, ::k, :].flatten().reshape(-1, 3), marker='o', s=5)
 
