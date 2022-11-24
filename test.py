@@ -39,13 +39,7 @@
 import argparse
 import numpy as np
 
-from CRS_commander import Commander
-# from demo.im_proc import *
-from graph import Graph
-from interpolation import *
-from robCRSgripper import robCRSgripper
-from robotBosch import robotBosch
-from robotCRS import robCRS93, robCRS97
+from src import *
 
 
 def move_point_to_point(trajectory, commander):
@@ -59,15 +53,15 @@ def move_spline(trajectory, commander, spline, order):
 
     if spline == 'poly':
         order = 3
-        spline_params = poly.interpolate(trajectory)
+        spline_params = interpolate_poly(trajectory)
     if spline == 'b-spline':
-        spline_params = b_spline.interpolate(trajectory, order=order)
+        spline_params = interpolate_b_spline(trajectory, order=order)
     if spline == 'p-spline':
         num_segments = int(len(trajectory) / 3)
         poly_deg = order
         penalty_order = 2
         lambda_ = 0.1
-        spline_params = p_spline.interpolate(trajectory, num_segments, poly_deg, penalty_order, lambda_)
+        spline_params = interpolate_p_spline(trajectory, num_segments, poly_deg, penalty_order, lambda_)
 
     commander.move_to_pos(trajectory[0])
     commander.wait_ready(sync=True)
@@ -162,8 +156,6 @@ if __name__ == '__main__':
         robot = robCRS97()
     if rob == 'CRS93':
         robot = robCRS93()
-    if rob == 'Bosch':
-        robot = robotBosch()
 
     commander = Commander(robot)  # initialize commander
     commander.open_comm(tty_dev, speed=19200)  # connect to control unit
