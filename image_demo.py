@@ -47,5 +47,4 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
 if __name__ == '__main__':
     image = cv2.imread('imgs_for_our_dear_Ales/5.png')
     squares_demo(image, 'blue', 'conf/main.yaml')
-    edge_colors = colors_at_edges(image, 100, 'conf/main.yaml')
-    print(edge_colors)
+    #edge_colors = colors_at_edges(image, 100, 'conf/main.yaml')
