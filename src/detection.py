@@ -34,7 +34,7 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
 
     # Edge detection
     gray_image = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_image, 50, 120) # 50, 100
+    edges = cv2.Canny(gray_image, 50, 120)  # 50, 100
 
     # Morphology closing
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))
@@ -97,3 +97,35 @@ def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (3, 3),
     kernel = np.ones(close_kernel, np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
     return thresh
+
+
+def colors_at_edges(bgr_img: np.ndarray, radius: int, config_file: str) -> dict:
+    # Convert BGR image to HSV & Adjust radius
+    hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
+    r = radius if radius <= hsv_img.shape[0]//2 else hsv_img.shape[0] // 2
+
+    # Blank center
+    hsv_img[r:-r, r:-r, :] = [0, 0, 0]
+
+    # Load colors from config & Set dictionary
+    cfg = yaml.safe_load(open(config_file, 'r'))
+    colors = cfg['limits'].keys()
+    color_appeared = {color: False for color in colors}
+
+    # Get colors at edges
+    for color in colors:
+        # Get limits
+        limits = cfg['limits'][color]
+        lower = tuple(limits['lower'])
+        upper = tuple(limits['upper'])
+
+        # Create mask
+        mask = cv2.inRange(hsv_img, lower, upper)
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+        # Decide if color is at edges
+        if np.count_nonzero(mask) > 1000:
+            color_appeared[color] = True
+
+    return color_appeared
