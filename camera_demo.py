@@ -11,7 +11,7 @@ camera.startCapture()
 
 while True:
     image = camera.retrieveBuffer()
-    image = image.convert(PyCapture2.PIXEL_FORMAT.BGR, PyCapture2.CONVERT_POLICY.NEAREST_NEIGHBOR)
+    image = image.convert(PyCapture2.PIXEL_FORMAT.BGR)
     rgb_cv_image = np.array(image.getData(), dtype="uint8").reshape((image.getRows(), image.getCols(), 3))
     bgr_cv_image = cv2.cvtColor(rgb_cv_image, cv2.COLOR_RGB2BGR)
     cv2.imshow('image', bgr_cv_image)
