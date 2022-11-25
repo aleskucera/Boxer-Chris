@@ -106,8 +106,8 @@ def corners_demo(img: str):
 
 
 if __name__ == '__main__':
-    # image = cv2.imread('edges/edges_chaos_in0.png')
-    # squares_demo(image, 'orange', 'conf/main.yaml')
+    #image = cv2.imread('edges/edges_chaos_in0.png')
+    #squares_demo(image, 'orange', 'conf/main.yaml')
     # corners_demo(image)
 
     image = cv2.imread('images/label.png')
