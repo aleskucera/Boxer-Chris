@@ -1,4 +1,25 @@
 limits:
+  black:
+    lower: [ 0, 0, 0 ]
+    upper: [ 179, 62, 183 ]
+  blue:
+    lower: [ 100, 130, 100 ]
+    upper: [ 120, 220, 190 ]
+  green:
+    lower: [ 70, 60, 60 ]
+    upper: [ 100, 150, 230 ]
+  orange:
+    lower: [ 5, 200, 110 ]
+    upper: [ 8, 255, 230 ]
+  red:
+    lower: [ 0, 140, 110 ]
+    upper: [ 5, 215, 240 ]
+  yellow:
+    lower: [ 15, 100, 120 ]
+    upper: [ 25, 255, 255 ]
+
+
+limits2:
   yellow:
     lower: [ 8, 150, 50 ]
     upper: [ 25, 255, 255 ]
@@ -16,7 +37,7 @@ limits:
     upper: [ 115, 150, 150 ]
     threshold: 10
 
-limits2:
+limits3:
   yellow:
     lower: [ 15, 190, 118 ]
     upper: [ 25, 255, 255 ]
@@ -38,7 +59,14 @@ limits2:
     upper: [ 105, 150, 100 ]
     threshold: 10
 
-
+color_map:
+  0: [ 255, 255, 255 ] # background
+  1: [ 0, 0, 0 ] # black
+  2: [ 0, 255, 0 ]  # green
+  3: [ 0, 0, 255 ] # blue
+  4: [ 0, 255, 255 ] # yellow
+  5: [ 255, 0, 0 ] # red
+  6: [ 255, 165, 0 ] # orange
 
 lengths:
   1: 53.96
