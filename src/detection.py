@@ -1,7 +1,6 @@
 import cv2
 import yaml
 import numpy as np
-# from dataclasses import dataclass
 
 
 class Square:
@@ -44,6 +43,9 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
     mask = cv2.threshold(closing, 127, 255, cv2.THRESH_BINARY_INV)[1]
     image_f1 = cv2.bitwise_and(image, image, mask=mask)
 
+    # normalize image
+    image_f1 = cv2.normalize(image_f1, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
     # ------------------ Filter color ------------------
 
     # Filter color based od HSV limits
@@ -52,7 +54,7 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
     image_f2 = cv2.bitwise_and(image_f1, image_f1, mask=mask)
 
     # Threshold image
-    thresh = threshold(image_f2, limits['threshold'])
+    thresh = threshold(image_f2, 10)
 
     # ------------------ Detect squares ------------------
 
@@ -102,7 +104,7 @@ def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (3, 3),
 def colors_at_edges(bgr_img: np.ndarray, radius: int, config_file: str) -> dict:
     # Convert BGR image to HSV & Adjust radius
     hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
-    r = radius if radius <= hsv_img.shape[0]//2 else hsv_img.shape[0] // 2
+    r = radius if radius <= hsv_img.shape[0] // 2 else hsv_img.shape[0] // 2
 
     # Blank center
     hsv_img[r:-r, r:-r, :] = [0, 0, 0]
@@ -129,3 +131,19 @@ def colors_at_edges(bgr_img: np.ndarray, radius: int, config_file: str) -> dict:
             color_appeared[color] = True
 
     return color_appeared
+
+
+def map_color(image: np.ndarray, config_file: str) -> np.ndarray:
+    # Load configuration
+    cfg = yaml.safe_load(open(config_file, 'r'))
+    cmap = cfg['color_map']
+
+    # Convert keys to int
+    cmap = {int(k): v for k, v in cmap.items()}
+
+    gray_img = image[:, :, 2]
+    # Map the colors
+    for k, v in cmap.items():
+        image[gray_img == k] = v
+
+    return image
