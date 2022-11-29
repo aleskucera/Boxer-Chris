@@ -5,7 +5,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 # read image
-img = plt.imread('colors/yellow.png')
+img = plt.imread('colors/orange.png')
 # img = plt.imread('imgs_for_our_dear_Ales/02input_color_image.png')
 print(np.max(img))
 print(np.min(img))

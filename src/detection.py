@@ -49,8 +49,8 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
     # ------------------ Filter color ------------------
 
     # Filter color based od HSV limits
-    hsv_img = cv2.cvtColor(image_f1, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv_img, lower, upper)
+    # hsv_img = cv2.cvtColor(image_f1, cv2.COLOR_BGR2HSV)
+    # mask = cv2.inRange(hsv_img, lower, upper)
     image_f2 = cv2.bitwise_and(image_f1, image_f1, mask=mask)
 
     # Threshold image
