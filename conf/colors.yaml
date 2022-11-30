@@ -1,29 +1,25 @@
-camera_settings:
+default_settings:
   brightness: 6.238
   exposure: 2.414
   gamma: 1.0
   pan: 8
   tilt: 2
   shutter: 57.453
-  gain: 15.379
+  gain: 0
   frame_rate: 15
   white_balance_red: 500
   white_balance_blue: 925
 
-black:
-  gain: 15.379
 
-green:
-  gain: 9.924
+gain:
+  black: 15.379
 
-blue:
-  gain: 2.041
+  green: 9.924
 
-red:
-  gain: -2.041
+  blue: 2.041
 
-orange:
-  gain: -4.258
+  red: -2.041
 
-yellow:
-  gain: -4.258
+  orange: -4.258
+
+  yellow: -4.258
