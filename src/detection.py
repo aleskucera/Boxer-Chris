@@ -145,5 +145,4 @@ def map_color(image: np.ndarray, config_file: str) -> np.ndarray:
     # Map the colors
     for k, v in cmap.items():
         image[gray_img == k] = v
-
     return image

@@ -3,7 +3,7 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src import detect_squares, map_color
+from src import detect_squares
 
 matplotlib.use('TkAgg')
 
@@ -106,17 +106,9 @@ def corners_demo(img: str):
 
 
 if __name__ == '__main__':
-    #image = cv2.imread('edges/edges_chaos_in0.png')
-    #squares_demo(image, 'orange', 'conf/main.yaml')
-    # corners_demo(image)
-
-    image = cv2.imread('images/label.png')
-
-    image = map_color(image, 'conf/main.yaml')
-
-    # print unique colors
-    unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
-    print(unique)
+    image = cv2.imread('edges/edges_chaos_in0.png')
+    squares_demo(image, 'orange', 'conf/main.yaml')
+    corners_demo(image)
 
     plt.imshow(image)
     plt.show()
