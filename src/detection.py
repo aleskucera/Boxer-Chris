@@ -19,7 +19,7 @@ class Square:
 
     @property
     def center(self):
-        return self.x, self.y
+        return int(self.x), int(self.y)
 
 
 def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
@@ -33,7 +33,7 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
 
     # Edge detection
     gray_image = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_image, 50, 120)  # 50, 100
+    edges = cv2.Canny(gray_image, 40, 60)  # 50, 100
 
     # Morphology closing
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))

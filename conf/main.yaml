@@ -9,7 +9,7 @@ limits:
     lower: [ 70, 60, 60 ]
     upper: [ 100, 150, 230 ]
   orange:
-    lower: [ 5, 200, 110 ]
+    lower: [ 5, 100, 80 ]
     upper: [ 8, 255, 230 ]
   red:
     lower: [ 0, 140, 110 ]

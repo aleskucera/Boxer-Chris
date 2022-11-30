@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 # Coordinated Spline Motion and Robot Control Project
-# 
+#
 # Copyright (c) 2017 Olga Petrova <olga.petrova@cvut.cz>
 # Advisor: Pavel Pisa <pisa@cmp.felk.cvut.cz>
 # FEE CTU Prague, Czech Republic
@@ -12,10 +12,10 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,6 @@
 # SOFTWARE.
 #
 # In 2017, project funded by PiKRON s.r.o. http://www.pikron.com/
-
 
 # Script provides functionality for CRS93, CRS97 and Bosch robot initialisation,
 # plus example trajectories and trajectory visualisation for CRS93 and CRS97 robots.
@@ -135,7 +134,8 @@ if __name__ == '__main__':
                         help='type of robot\n{CRS97, CRS93, Bosch}', required=True)
     parser.add_argument('-m', '--max-speed', dest='max_speed', type=int,
                         default=None, help='maximal motion speed')
-    parser.add_argument('-t', '--reg-type', dest='reg_type', type=int, default=None, help='controller type selection')
+    parser.add_argument('-t', '--reg-type', dest='reg_type', type=int, default=None,
+                        help='controller type selection')
     parser.add_argument('-sp', '--spline', dest='spline', type=str, default='poly',
                         help='type of spline to use for interpolation\n{poly, b-spline, p-spline}')
     parser.add_argument('-o', '--order', dest='order', type=int, default=2, help='order of splines')
