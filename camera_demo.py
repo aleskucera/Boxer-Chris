@@ -13,6 +13,8 @@ camera.startCapture()
 cam_gain = camera.getProperty(PyCapture2.PROPERTY_TYPE.GAIN)
 print(cam_gain.absValue)
 
+camera.setProperty()
+
 while True:
 
     camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=2.0)
