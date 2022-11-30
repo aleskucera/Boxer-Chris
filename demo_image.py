@@ -45,17 +45,17 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
 
 
 if __name__ == '__main__':
-    # image = cv2.imread('edges/edges_chaos_in0.png')
-    # squares_demo(image, 'orange', 'conf/main.yaml')
+    image = cv2.imread('camera/images0/orange.png')
+    squares_demo(image, 'orange', 'conf/main.yaml')
     # corners_demo(image)
 
-    image = cv2.imread('images/label.png')
-
-    image = map_color(image, 'conf/main.yaml')
-
-    # print unique colors
-    unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
-    print(unique)
-
-    plt.imshow(image)
-    plt.show()
+    # image = cv2.imread('images/label.png')
+    #
+    # image = map_color(image, 'conf/main.yaml')
+    #
+    # # print unique colors
+    # unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
+    # print(unique)
+    #
+    # plt.imshow(image)
+    # plt.show()

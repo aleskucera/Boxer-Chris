@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.use('TkAgg')
 
 import cv2
 from src import detect_squares
-def main():
 
+
+def main():
     colors = ['black', 'green', 'blue', 'red', 'orange', 'yellow']
 
     for color in colors:
@@ -14,7 +16,7 @@ def main():
 
         print(f'Processing {color}...')
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(16, 9))
         ax = fig.add_subplot(111, projection='3d')
 
         k = 5
@@ -53,18 +55,16 @@ def main():
         images = [img[..., ::-1], edges, image_f1[..., ::-1], image_f2[..., ::-1], thresh, result]
         titles = ['Original', 'Edges', 'Image f1', 'Image f2', 'Thresh', 'Result']
 
+        fig = plt.figure(figsize=(16, 9))
         for i in range(len(images)):
-            plt.subplot(2, 3, i + 1)
-            plt.imshow(images[i])
-            plt.title(titles[i])
-            plt.xticks([])
-            plt.yticks([])
+            ax = fig.add_subplot(2, 3, i + 1)
+            ax.imshow(images[i])
+            ax.set_title(titles[i])
+            ax.set_xticks([])
+            ax.set_yticks([])
 
         plt.show()
 
 
 if __name__ == '__main__':
     main()
-
-
-
