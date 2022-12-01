@@ -31,6 +31,9 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
     contours_image = image.copy()
     cv2.drawContours(contours_image, contours, -1, plt_color, 4)
 
+    # Save the contour image
+    cv2.imwrite('contours.png', contours_image)
+    cv2.imwrite('result_on_edges.png', result)
     images = [image[..., ::-1], image_f1[..., ::-1], image_f2[..., ::-1],
               thresh, contours_image[..., ::-1], result[..., ::-1]]
     titles = ['Original image', 'Processed image', 'Color Filter', 'Threshold', 'Contours', f'Detected {color} squares']
@@ -45,17 +48,17 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
 
 
 if __name__ == '__main__':
-    image = cv2.imread('camera/images0/orange.png')
-    squares_demo(image, 'orange', 'conf/main.yaml')
+    # image = cv2.imread('camera/images1/original_image.png')
+    # squares_demo(image, 'orange', 'conf/main.yaml')
     # corners_demo(image)
 
-    # image = cv2.imread('images/label.png')
-    #
-    # image = map_color(image, 'conf/main.yaml')
-    #
-    # # print unique colors
-    # unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
-    # print(unique)
-    #
-    # plt.imshow(image)
-    # plt.show()
+    image = cv2.imread('images/label.png')
+
+    image = map_color(image, 'conf/main.yaml')
+
+    # print unique colors
+    unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
+    print(unique)
+
+    plt.imshow(image)
+    plt.show()
