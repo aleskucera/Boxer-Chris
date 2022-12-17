@@ -3,7 +3,7 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src import detect_squares, map_color
+from src import detect_squares, map_color, detect_clusters
 
 matplotlib.use('TkAgg')
 
@@ -46,19 +46,23 @@ def squares_demo(image: np.ndarray, color: str, config_file: str) -> None:
 
     plt.show()
 
+def clusters_demo(image: np.ndarray, color: str, config_file: str) -> None:
+    # Process image
+    image_f1, thresh = detect_clusters(image, color, config_file)
+
+    images = [image[..., ::-1], image_f1[..., ::-1], thresh]
+    titles = ['Original image', 'Color Filter', 'Threshold']
+
+    for i, img in enumerate(images):
+        plt.subplot(2, 2, i + 1)
+        plt.imshow(img)
+        plt.xticks([]), plt.yticks([])
+        plt.title(titles[i])
+
+    plt.show()
+
 
 if __name__ == '__main__':
-    # image = cv2.imread('camera/images1/original_image.png')
-    # squares_demo(image, 'orange', 'conf/main.yaml')
-    # corners_demo(image)
-
-    image = cv2.imread('images/label.png')
-
-    image = map_color(image, 'conf/main.yaml')
-
-    # print unique colors
-    unique, counts = np.unique(image.reshape(-1, image.shape[2]), axis=0, return_counts=True)
-    print(unique)
-
-    plt.imshow(image)
-    plt.show()
+    image = cv2.imread('camera/images1/orange.png')
+    # squares_demo(image, 'red', 'conf/main.yaml')
+    clusters_demo(image, 'orange', 'conf/main.yaml')

@@ -3,6 +3,7 @@ Simple "Square Detector" program.
 Loads several images sequentially and tries to find squares in each image.
 """
 
+from sklearn.cluster import DBSCAN
 import numpy as np
 import cv2 as cv
 
@@ -14,8 +15,6 @@ def angle_cos(p0, p1, p2):
 
 def is_square(cnt):
     if len(cnt) == 4 and cv.contourArea(cnt) > 1000 and cv.contourArea(cnt) < 100000 and cv.isContourConvex(cnt):
-        cnt = cnt.reshape(-1, 2)
-
         # calculate length of each side
         lengths = [np.sqrt((cnt[i][0] - cnt[(i + 1) % 4][0]) ** 2 + (cnt[i][1] - cnt[(i + 1) % 4][1]) ** 2)
                    for i in range(4)]
@@ -68,12 +67,15 @@ def main():
     for img in glob('camera/images8/*.png'):
         img = cv.imread(img)
         squares = find_squares(img)
-        cv.drawContours(img, squares, -1, (0, 255, 0), 2)
-        cv.imshow('squares', img)
-        ch = cv.waitKey()
+        # cv.drawContours(img, squares, -1, (0, 255, 0), 1)
+        # cv.imshow('squares', img)
+        # ch = cv.waitKey()
 
 
 if __name__ == '__main__':
     print(__doc__)
     main()
     cv.destroyAllWindows()
+    #
+    #
+
