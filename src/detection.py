@@ -22,6 +22,26 @@ class Square:
         return int(self.x), int(self.y)
 
 
+def detect_clusters(image: np.ndarray, color: str, config_file: str):
+    # Load configuration
+    cfg = yaml.safe_load(open(config_file, 'r'))
+    limits = cfg['limits'][color]
+    lower = tuple(limits['lower'])
+    upper = tuple(limits['upper'])
+
+    # Filter color based od HSV limits
+    hsv_img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv_img, lower, upper)
+    filtered_image = cv2.bitwise_and(image, image, mask=mask)
+
+    # Threshold image
+    thresh = threshold(filtered_image, 10)
+
+    return filtered_image, thresh
+
+
+
+
 def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
     # Load configuration
     cfg = yaml.safe_load(open(config_file, 'r'))
@@ -33,7 +53,7 @@ def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
 
     # Edge detection
     gray_image = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_image, 40, 60)  # 50, 100
+    edges = cv2.Canny(gray_image, 50, 100)  # 50, 100
 
     # Morphology closing
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))
@@ -90,8 +110,8 @@ def filter_squares(contours, min_area: float = 1000, max_ratio: float = 0.2) -> 
     return squares
 
 
-def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (3, 3),
-              close_kernel: tuple = (30, 30)) -> np.ndarray:
+def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (2, 2),
+              close_kernel: tuple = (5, 5)) -> np.ndarray:
     img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
     kernel = np.ones(open_kernel, np.uint8)

@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import matplotlib
+
 matplotlib.use('TkAgg')
 
 # read image
-img = plt.imread('colors/orange.png')
+img = plt.imread('camera/images0/orange.png')
 # img = plt.imread('imgs_for_our_dear_Ales/02input_color_image.png')
 print(np.max(img))
 print(np.min(img))
-
 
 # plot every 10th point to 3D plot
 fig = plt.figure()

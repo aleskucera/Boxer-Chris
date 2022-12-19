@@ -12,7 +12,7 @@ def main():
     colors = ['black', 'green', 'blue', 'red', 'orange', 'yellow']
 
     for color in colors:
-        img = cv2.imread(f'camera/images0/{color}.png')
+        img = cv2.imread(f'camera/images1/{color}.png')
 
         print(f'Processing {color}...')
 

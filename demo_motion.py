@@ -166,7 +166,8 @@ if __name__ == '__main__':
     if rob in ['CRS97', 'CRS93']:
 
         if action in ['graph', 'circle_ptp', 'circle_spline']:
-            sol = circle_trajectory(commander)
+            # sol = line_trajectory(commander, [600, 0, 800, 0, 0, 0], [300, 0, 800, 0, 0, 0])
+            sol = line_trajectory(commander, [400, 400, 50, 0, 90, 0], [400, 400, 300, 0, 90, 0])
 
             if action == 'graph':
                 e = Graph(sol)
@@ -179,7 +180,7 @@ if __name__ == '__main__':
                 move_point_to_point(sol, commander)
 
         if action == 'grip':
-            robCRSgripper(commander, 0.9)
+            robCRSgripper(commander, -1)
             commander.wait_ready()
 
         if action == 'purge':
