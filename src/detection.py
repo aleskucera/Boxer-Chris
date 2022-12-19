@@ -178,7 +178,7 @@ def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
 
 
 if __name__ == '__main__':
-    cfg = yaml.safe_load(open('../conf/main.yaml', 'r'))
+    cfg = yaml.safe_load(open('../conf/detection.yaml', 'r'))
     img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
 
     start = time.time()
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         cv.putText(img, f'{int(-s.angle)}', (int(s.center[0] - 10), int(s.center[1] + 10)),
                    cv.FONT_HERSHEY_SIMPLEX, 0.8, s.color[::-1], 2, cv.LINE_AA)
 
-    cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
+    # cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
     cv.imshow('img', img)
     cv.waitKey(0)
     cv.destroyAllWindows()

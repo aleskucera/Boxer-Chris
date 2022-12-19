@@ -44,23 +44,38 @@ def draw_charuco_board(image, charuco_dict, board):
 
 def main():
     # Load the ChArUco board
+    squaresX = 3
+    squaresY = 3
+    squareLength = 40
+    markerLength = 30
+    margins = squareLength - markerLength
+
+    imageSize = (int(squaresX * squareLength + 2 * margins), int(squaresY * squareLength + 2 * margins))
+
     charuco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+    board = aruco.CharucoBoard_create(squaresX, squaresY, squareLength, markerLength, charuco_dict)
+
+    board_image = board.draw(imageSize)
+    cv2.imwrite('charuco_board.png', board_image)
+
+
+
     # board = aruco.CharucoBoard_create(6, 6, 0.025, 0.019, charuco_dict)
-    board = aruco.CharucoBoard_create(6, 3, 0.02, 0.016, charuco_dict)
+    # board = aruco.CharucoBoard_create(6, 3, 0.02, 0.016, charuco_dict)
 
     # Load the image
     # image = cv2.imread('robot_charuco2.png')
     # Calibrate camera
-    image_paths = [os.path.join('charuco', item) for item in os.listdir('charuco') if item.endswith('.png')]
-    retval, camera_matrix, dist_coeffs, rvecs, tvecs = calibrate_charuco(image_paths, charuco_dict, board)
+    # image_paths = [os.path.join('charuco', item) for item in os.listdir('charuco') if item.endswith('.png')]
+    # retval, camera_matrix, dist_coeffs, rvecs, tvecs = calibrate_charuco(image_paths, charuco_dict, board)
     # Draw the detected ChArUco board
     # image = draw_charuco_board(image, charuco_dict, board)
 
-    print(f'Retval: {retval}')
-    print(F'Camera matrix: {camera_matrix}')
-    print(f'Dist coeffs: {dist_coeffs}')
-    print(f'Rvecs: {rvecs}')
-    print(f'Tvecs: {tvecs}')
+    # print(f'Retval: {retval}')
+    # print(F'Camera matrix: {camera_matrix}')
+    # print(f'Dist coeffs: {dist_coeffs}')
+    # print(f'Rvecs: {rvecs}')
+    # print(f'Tvecs: {tvecs}')
 
     # Save the result
     # cv2.imwrite('result_robot.png', image)
