@@ -1,6 +1,7 @@
-import numpy as np
 import random
+import numpy as np
 import scipy.optimize as opt
+from sklearn.cluster import DBSCAN
 
 
 class Square:
@@ -30,16 +31,29 @@ class Square:
                f"       \n  - area:     {self.area}" \
                f"       \n  - color:    {self.color}"
 
+    def __repr__(self):
+        return f"{self.area}"
+
+
+def cluster_squares(squares: np.ndarray, eps: float, min_samples: int) -> tuple:
+    # get an array of the areas of the squares
+    areas = np.array([[square.area] for square in squares])
+    # cluster squares with similar areas
+    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(areas)
+    return np.array(clustering.labels_, dtype=int)
+
 
 def assemble_order(squares: np.ndarray, color_priority=False) -> np.ndarray:
-    # get an array of area of the squares
-    areas = np.array([square.area for square in squares])
-
     # divide squares into groups by their areas
-    r_squares = np.split(squares, np.flatnonzero(np.abs(np.diff(areas)) >= 0.5)+1)     # rearranged_squares
-    print("here:", np.flatnonzero(np.abs(np.diff(areas)) >= 0.5)+1)
+    clusters = cluster_squares(squares, 0.4, 1)     # rearranged_squares
+    idx_sort = np.argsort(clusters)
+    squares = squares[idx_sort]
+    clusters = clusters[idx_sort]
+
+    squares = np.split(squares, np.where(np.diff(clusters) == 1)[0]+1)
+
     # TODO: DELETE THIS PART
-    for i, gsquares in enumerate(r_squares):
+    for i, gsquares in enumerate(squares):
         print(f"-------------------------------------\nGroup {i}:\n")
         for square in gsquares:
             print(square.area)
@@ -47,55 +61,35 @@ def assemble_order(squares: np.ndarray, color_priority=False) -> np.ndarray:
 
     colors = ["red", "black", "blue", "orange", "green"]
 
-    NUMBER_OF_COLORS = 6
     # get a possible assemble order
-    result = [[]]*NUMBER_OF_COLORS
     if color_priority:
-        result = np.split(squares, [1])
+        result = None
     else:
-        return 1
-    return result
+        l = get_longest_array(squares)
+        A = np.full((len(squares), l), None)
+        for i, square in enumerate(squares):
+            A[i, :len(square)] = square
+    print(A)
+    return 0
 
 
-def optimized_func(x, cam, glob):
-    a11, a21, a12, a22, b1, b2 = x
-    x_cam = cam[0, :]
-    y_cam = cam[1, :]
-
-    x_glob = glob[0, :]
-    y_glob = glob[1, :]
-
-    ones = np.ones_like(x_cam)
-
-    f1 = a11*x_cam+a12*y_cam+ones*b1-x_glob
-    f2 = a21*x_cam+a22*y_cam+ones*b2-y_glob
-
-    return np.hstack((f1, f2))
-
-
-def get_transform_parameters(X, Y):
-    x0 = [1, 0, 0, 1, 0, 0]
-    x = opt.least_squares(optimized_func, x0, args=(X, Y)).x
-    a11, a21, a12, a22, b1, b2 = x
-
-    return np.array([[a11, a12], [a21, a22]]), np.array([b1, b2])
-
+def get_longest_array(arrays):
+    lens = []
+    for array in arrays:
+        lens.append(len(array))
+    return max(lens)
 
 def main():
-    # squares = []
-    # colors = ["red", "black", "blue", "orange", "green"]
-    # for i in range(5):
-    #     for color in colors:
-    #         square = Square(random.uniform(-100,100), random.uniform(-100, 100), i+random.uniform(-0.1,0.1), i+random.uniform(-0.1, 0.1), 0, [], [], color)
-    #         squares.append(square)
-    #         # print(square)
-    #
-    # np.random.shuffle(squares)
-    # assemble_order(squares)
-    X = np.array([[569, 569, 749, 659], [810, 624, 434, 341]])
-    Y = np.array([[500, 500, 400, 450], [100, 0, -100, -150]])
-    A, b = get_transform_parameters(X, Y)
-    print(A,b)
+    squares = []
+    colors = ["red", "black", "blue", "orange", "green"]
+    for i in range(5):
+        for color in colors:
+            square = Square(random.uniform(-100,100), random.uniform(-100, 100), i+random.uniform(-0.1,0.1), i+random.uniform(-0.1, 0.1), 0, [], [], color)
+            squares.append(square)
+            # print(square)
+
+    np.random.shuffle(squares)
+    assemble_order(np.array(squares))
 
 
 if __name__ == "__main__":
