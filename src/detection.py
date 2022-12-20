@@ -1,168 +1,199 @@
-import cv2
+import os
+import time
+import itertools
+
 import yaml
+import cv2 as cv
 import numpy as np
+from sklearn.cluster import DBSCAN
+
+IMAGE_NUMBER = 8
+
+MIN_AREA = 1000
+MAX_AREA = 100000
+
+MAX_COS = 0.05
+MAX_LEN_RATIO = 1.08
+
+MIN_THRESHOLD = 0
+MAX_THRESHOLD = 255
+STEP = 5
+
+DP_EPSILON = 0.05
+
+DB_EPSILON = 5
+DB_MIN_SAMPLES = 2
+
+
+class ApproxPolygon:
+    def __init__(self, contour):
+        self.length = cv.arcLength(contour, True)
+        self.polygon = cv.approxPolyDP(contour, DP_EPSILON * self.length, True).reshape(-1, 2)
+        self.area = cv.contourArea(self.polygon)
+
+    def area_in_range(self, min_area=MIN_AREA, max_area=MAX_AREA):
+        return min_area < self.area < max_area
+
+    def is_square(self, max_cos=MAX_COS, max_len_ratio=MAX_LEN_RATIO):
+        if len(self.polygon) == 4 and cv.isContourConvex(self.polygon):
+            c, c1, c2 = self.polygon, np.roll(self.polygon, 1, axis=0), np.roll(self.polygon, 2, axis=0)
+
+            lengths = [np.sqrt((c[i][0] - c1[i][0]) ** 2 + (c[i][1] - c1[i][1]) ** 2) for i in range(4)]
+            cos_angles = [self.angle_cos(c[i], c1[i], c2[i]) for i in range(4)]
+
+            if max(cos_angles) < max_cos and max(lengths) / min(lengths) < max_len_ratio:
+                return True
+
+        return False
+
+    @staticmethod
+    def angle_cos(p0, p1, p2):
+        d1, d2 = (p0 - p1).astype('float'), (p2 - p1).astype('float')
+        return abs(np.dot(d1, d2) / np.sqrt(np.dot(d1, d1) * np.dot(d2, d2)))
 
 
 class Square:
-    def __init__(self, x, y, width, height, rotation, contour, corners):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.rotation = rotation
-        self.contour = contour
-        self.corners = corners
+    def __init__(self, contour, color=None):
+        self.id = None
+        self.color = color
+        self.symbol = None
+        self.color_name = None
 
-    @property
-    def area(self):
-        return self.width * self.height
+        rect = cv.minAreaRect(contour)
+        self.corners = cv.boxPoints(rect).astype(int)
 
-    @property
-    def center(self):
-        return int(self.x), int(self.y)
+        (x, y), (w, h), angle = rect
 
+        self.area = w * h
+        self.angle = -angle
+        self.width = int(w)
+        self.height = int(h)
+        self.center = (int(x), int(y))
 
-def detect_clusters(image: np.ndarray, color: str, config_file: str):
-    # Load configuration
-    cfg = yaml.safe_load(open(config_file, 'r'))
-    limits = cfg['limits'][color]
-    lower = tuple(limits['lower'])
-    upper = tuple(limits['upper'])
+        self.outer_square = None
 
-    # Filter color based od HSV limits
-    hsv_img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv_img, lower, upper)
-    filtered_image = cv2.bitwise_and(image, image, mask=mask)
+    def is_inside(self, point: tuple):
+        point = tuple(map(float, point))
+        return cv.pointPolygonTest(self.corners, point, False) > 0
 
-    # Threshold image
-    thresh = threshold(filtered_image, 10)
+    def __lt__(self, other):
+        return self.area < other.area
 
-    return filtered_image, thresh
+    def __gt__(self, other):
+        return self.area > other.area
 
+    def __eq__(self, other):
+        return self.area == other.area
 
+    def __ne__(self, other):
+        return self.area != other.area
 
 
-def detect_squares(image: np.ndarray, color: str, config_file: str) -> tuple:
-    # Load configuration
-    cfg = yaml.safe_load(open(config_file, 'r'))
-    limits = cfg['limits'][color]
-    lower = tuple(limits['lower'])
-    upper = tuple(limits['upper'])
+def detect_squares(directory: str, main_image: np.ndarray, config: dict):
+    contours, squares = [], []
 
-    # ------------------ Filter inside squares ------------------
-
-    # Edge detection
-    gray_image = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray_image, 50, 100)  # 50, 100
-
-    # Morphology closing
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))
-    closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-
-    # Apply mask
-    mask = cv2.threshold(closing, 127, 255, cv2.THRESH_BINARY_INV)[1]
-    image_f1 = cv2.bitwise_and(image, image, mask=mask)
-
-    # normalize image
-    image_f1 = cv2.normalize(image_f1, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-
-    # ------------------ Filter color ------------------
-
-    # Filter color based od HSV limits
-    hsv_img = cv2.cvtColor(image_f1, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv_img, lower, upper)
-    image_f2 = cv2.bitwise_and(image_f1, image_f1, mask=mask)
-
-    # Threshold image
-    thresh = threshold(image_f2, 10)
-
-    # ------------------ Detect squares ------------------
+    hsv_image = cv.cvtColor(main_image, cv.COLOR_BGR2HSV)
 
     # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
 
-    # Filter squares
-    squares = filter_squares(contours)
+    # Filter out contours that are not squares and cluster them
+    labels, vectors = cluster_square_contours(contours)
 
-    return edges, image_f1, image_f2, thresh, contours, squares
+    # Create Square objects
+    for i in range(np.max(labels) + 1):
+        mean = np.mean(vectors[labels == i], axis=0, dtype=np.int32).reshape(4, 2)
+        squares.append(Square(mean))
 
+    # Filter out squares that are inside other squares
+    squares = filter_outers(squares)
 
-def filter_squares(contours, min_area: float = 1000, max_ratio: float = 0.2) -> list:
-    squares = []
-    for contour in contours:
-
-        # Approximate contour to polygon
-        approx = cv2.approxPolyDP(contour, 0.06 * cv2.arcLength(contour, True), True)
-
-        # Skip if contour is not a rectangle
-        if len(approx) == 4:
-            # Approximate rectangle properties
-            rectangle = cv2.minAreaRect(contour)
-            corners = cv2.boxPoints(rectangle)
-            corners = np.int0(corners)
-
-            ((x, y), (width, height), rotation) = rectangle
-
-            # Skip if rectangle isn't similar to square or is too small
-            if width * height > min_area and abs(width - height) / (width + height) < max_ratio:
-                square = Square(x, y, width, height, rotation, contour, corners)
-                squares.append(square)
+    # Find colors of squares
+    squares = assign_color(squares, hsv_image, config)
     return squares
 
 
-def threshold(image: np.ndarray, threshold: int, open_kernel: tuple = (2, 2),
-              close_kernel: tuple = (5, 5)) -> np.ndarray:
-    img = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
-    kernel = np.ones(open_kernel, np.uint8)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-    kernel = np.ones(close_kernel, np.uint8)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    return thresh
+def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
+    contours = []
+    for file in os.scandir(directory):
+        img = cv.imread(file.path)
+
+        # Find squares in every color channel
+        for channel in cv.split(img):
+            for threshold in range(lower, upper, step):
+                _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
+                cnts, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+                contours.extend(cnts)
+
+    return contours
 
 
-def colors_at_edges(bgr_img: np.ndarray, radius: int, config_file: str) -> dict:
-    # Convert BGR image to HSV & Adjust radius
-    hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
-    r = radius if radius <= hsv_img.shape[0] // 2 else hsv_img.shape[0] // 2
+def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
+                            min_samples: int = DB_MIN_SAMPLES) -> tuple:
+    vectors = []
 
-    # Blank center
-    hsv_img[r:-r, r:-r, :] = [0, 0, 0]
+    for contour in contours:
+        poly = ApproxPolygon(contour)
+        if poly.area_in_range() and poly.is_square():
+            vectors.append(poly.polygon.reshape(8, ))
 
-    # Load colors from config & Set dictionary
-    cfg = yaml.safe_load(open(config_file, 'r'))
-    colors = cfg['limits'].keys()
-    color_appeared = {color: False for color in colors}
+    vectors = np.array(vectors)
+    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(vectors)
 
-    # Get colors at edges
-    for color in colors:
-        # Get limits
-        limits = cfg['limits'][color]
-        lower = tuple(limits['lower'])
-        upper = tuple(limits['upper'])
-
-        # Create mask
-        mask = cv2.inRange(hsv_img, lower, upper)
-        kernel = np.ones((3, 3), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-
-        # Decide if color is at edges
-        if np.count_nonzero(mask) > 1000:
-            color_appeared[color] = True
-
-    return color_appeared
+    return clustering.labels_, vectors
 
 
-def map_color(image: np.ndarray, config_file: str) -> np.ndarray:
-    # Load configuration
-    cfg = yaml.safe_load(open(config_file, 'r'))
-    cmap = cfg['color_map']
+def filter_outers(squares: list) -> list:
+    for s1, s2 in itertools.combinations(squares, 2):
+        if s1.is_inside(s2.center) or s2.is_inside(s1.center):
+            if s1 > s2:
+                s1.outer_square = True
+            else:
+                s2.outer_square = True
 
-    # Convert keys to int
-    cmap = {int(k): v for k, v in cmap.items()}
+    return [square for square in squares if not square.outer_square]
 
-    gray_img = image[:, :, 2]
-    # Map the colors
-    for k, v in cmap.items():
-        image[gray_img == k] = v
-    return image
+
+def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
+    for square in squares:
+        colors = []
+
+        # Focus on the inner part of the square
+        mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
+        cv.drawContours(mask, [square.corners], -1, 255, -1)
+        square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
+
+        # Find out which color is the most dominant
+        for color in config['colors'].values():
+            lower = np.array(color['lower'])
+            upper = np.array(color['upper'])
+
+            filtered_image = cv.inRange(square_hsv, lower, upper)
+            colors.append(np.sum(filtered_image))
+
+        square.color = config['colors'][np.argmax(colors)]['rgb']
+        square.symbol = config['colors'][np.argmax(colors)]['symbol']
+
+    return squares
+
+
+if __name__ == '__main__':
+    cfg = yaml.safe_load(open('../conf/detection.yaml', 'r'))
+    img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
+
+    start = time.time()
+    square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img, cfg)
+    end = time.time()
+
+    print(f'Found {len(square_list)} squares in {end - start} seconds')
+
+    for s in square_list:
+        cv.drawContours(img, [s.corners], 0, s.color[::-1], 3)
+
+        cv.putText(img, f'{int(-s.angle)}', (int(s.center[0] - 10), int(s.center[1] + 10)),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.8, s.color[::-1], 2, cv.LINE_AA)
+
+    # cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
+    cv.imshow('img', img)
+    cv.waitKey(0)
+    cv.destroyAllWindows()

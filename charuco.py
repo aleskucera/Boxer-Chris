@@ -17,7 +17,7 @@ def calibrate_charuco(image_paths, charuco_dict, board):
         corners, ids, rejected = aruco.detectMarkers(image, charuco_dict, parameters=aruco_params)
         resp, charuco_corners, charuco_ids = aruco.interpolateCornersCharuco(corners, ids, image, board)
 
-        if resp > 9:
+        if resp > 0:
             corner_list.append(charuco_corners)
             id_list.append(charuco_ids)
 
@@ -44,17 +44,36 @@ def draw_charuco_board(image, charuco_dict, board):
 
 def main():
     # Load the ChArUco board
+    # squaresX = 3
+    # squaresY = 3
+    # squareLength = 40
+    # markerLength = 30
+    # margins = squareLength - markerLength
+
+    # imageSize = (int(squaresX * squareLength + 2 * margins), int(squaresY * squareLength + 2 * margins))
+
     charuco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-    # board = aruco.CharucoBoard_create(6, 6, 0.025, 0.019, charuco_dict)
-    board = aruco.CharucoBoard_create(6, 3, 0.02, 0.016, charuco_dict)
+    # board = aruco.CharucoBoard_create(squaresX, squaresY, squareLength, markerLength, charuco_dict)
+
+    # board_image = board.draw(imageSize)
+    # cv2.imwrite('charuco_board.png', board_image)
+
+
+
+    # board = aruco.CharucoBoard_create(4, 4, 0.025, 0.019, charuco_dict)
+    board = aruco.CharucoBoard_create(2, 2, 0.025, 0.019, charuco_dict)
 
     # Load the image
-    # image = cv2.imread('robot_charuco2.png')
+    image = cv2.imread('camera/images/yellow.png')
+
     # Calibrate camera
     image_paths = [os.path.join('charuco', item) for item in os.listdir('charuco') if item.endswith('.png')]
     retval, camera_matrix, dist_coeffs, rvecs, tvecs = calibrate_charuco(image_paths, charuco_dict, board)
     # Draw the detected ChArUco board
-    # image = draw_charuco_board(image, charuco_dict, board)
+    image = draw_charuco_board(image, charuco_dict, board)
+
+    cv2.imshow('image', image)
+    cv2.waitKey(0)
 
     print(f'Retval: {retval}')
     print(F'Camera matrix: {camera_matrix}')
@@ -63,7 +82,7 @@ def main():
     print(f'Tvecs: {tvecs}')
 
     # Save the result
-    # cv2.imwrite('result_robot.png', image)
+    cv2.imwrite('result_robot.png', image)
 
 
 if __name__ == '__main__':
