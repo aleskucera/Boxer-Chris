@@ -89,10 +89,12 @@ class Square:
         return self.area != other.area
 
 
-def detect_squares(directory: str, main_image: np.ndarray, config: dict):
+def detect_squares(directory: str, main_image: np.ndarray):
     contours, squares = [], []
 
     hsv_image = cv.cvtColor(main_image, cv.COLOR_BGR2HSV)
+
+    config = yaml.safe_load(open('..conf/detection.yaml', 'r'))
 
     # Find contours
     contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
@@ -178,11 +180,10 @@ def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
 
 
 if __name__ == '__main__':
-    cfg = yaml.safe_load(open('../conf/detection.yaml', 'r'))
     img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
 
     start = time.time()
-    square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img, cfg)
+    square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img)
     end = time.time()
 
     print(f'Found {len(square_list)} squares in {end - start} seconds')

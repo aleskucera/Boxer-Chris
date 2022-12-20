@@ -6,9 +6,42 @@ import cv2 as cv
 import PyCapture2
 import numpy as np
 
-from src import detect_squares, set_camera
+from .detection import detect_squares
 
-def capture_images(camera: PyCapture2.Camera, directory: str, config: dict):
+
+def convert_coordinates(x: np.ndarray) -> np.ndarray:
+    calib_cfg = yaml.safe_load(open('conf/calibration.yaml', 'r'))
+    A = np.array(calib_cfg['matrix'])
+    b = np.array(calib_cfg['vector'])[..., np.newaxis]
+    return A@x + b
+
+
+def set_camera(directory: str):
+    # Load the configuration file
+    camera_cfg = yaml.safe_load(open('../conf/camera.yaml', 'r'))
+    
+    os.makedirs(directory, exist_ok=True)
+
+    # Connect to the camera
+    bus = PyCapture2.BusManager()
+    camera = PyCapture2.Camera()
+    camera.connect(bus.getCameraFromIndex(0))
+    camera.startCapture()
+
+    # Set the camera settings
+    settings = camera_cfg['default_settings']
+    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.WHITE_BALANCE, valueA=settings['white_balance_red'], valueB=settings['white_balance_blue'])
+    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.SHUTTER, absValue=settings['shutter'], autoManualMode=False)
+    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=settings['gain'], autoManualMode=False)
+    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.BRIGHTNESS, absValue=settings['brightness'], autoManualMode=False)
+
+    return camera
+
+
+def capture_images(camera: PyCapture2.Camera, directory: str):
+    # Load the configuration file
+    config = yaml.safe_load(open('../conf/camera.yaml', 'r'))
+
     for color, value in config['gain'].items():
         # Set the gain to the value for the current color
         camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=value, autoManualMode=False)
@@ -26,37 +59,9 @@ def capture_images(camera: PyCapture2.Camera, directory: str, config: dict):
     print(f'Captured images and saved the to {directory}')
 
 
-def convert_coordinates(x: np.ndarray) -> np.ndarray:
-    calib_cfg = yaml.safe_load(open('conf/calibration.yaml', 'r'))
-    A = np.array(calib_cfg['matrix'])
-    b = np.array(calib_cfg['vector'])[..., np.newaxis]
-    return A@x + b
-
-
-def get_images():
-    # Load the configuration file
-    camera_cfg = yaml.safe_load(open('conf/camera.yaml', 'r'))
-
-    # Create the directory to save the images
-    directory = 'camera/images'
-    
-    os.makedirs(directory, exist_ok=True)
-
-    # Connect to the camera
-    bus = PyCapture2.BusManager()
-    camera = PyCapture2.Camera()
-    camera.connect(bus.getCameraFromIndex(0))
-    camera.startCapture()
-
-    # Set the camera settings
-    settings = camera_cfg['default_settings']
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.WHITE_BALANCE, valueA=settings['white_balance_red'], valueB=settings['white_balance_blue'])
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.SHUTTER, absValue=settings['shutter'], autoManualMode=False)
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=settings['gain'], autoManualMode=False)
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.BRIGHTNESS, absValue=settings['brightness'], autoManualMode=False)
-
-    # Capture the images
-    capture_images(camera, directory, camera_cfg)
+def set_camera_capture_images(directory='../camera/images'):
+    camera = set_camera(directory)
+    capture_images(camera, directory)
 
 
 def draw_squares(image: np.ndarray, squares: np.ndarray):
@@ -70,23 +75,16 @@ def draw_squares(image: np.ndarray, squares: np.ndarray):
 
 
 def main():
-    set_camera()
-    # directory = 'camera/images'
+    directory = 'camera/images'
 
-    # get_images()
+    image = cv.imread(directory+'/red.png')
 
-    # image = cv.imread(directory+'/red.png')
+    set_camera_capture_images()
 
-    # # Detect the squares
-    # detection_cfg = yaml.safe_load(open('conf/detection.yaml', 'r'))
-    # squares = detect_squares(directory, image, detection_cfg)
-
-    #draw_squares(image, squares)
+    # Detect the squares
+    squares = detect_squares(directory, image)
 
 
 if __name__ == '__main__':
     main()
-
-
-
 

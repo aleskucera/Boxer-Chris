@@ -1,0 +1,37 @@
+colors:
+  0:
+    name: black
+    symbol: D
+    rgb: [ 255, 255, 255 ]
+    lower: [ 100, 0, 0 ]
+    upper: [ 180, 100, 70 ]
+  1:
+    name: green
+    symbol: G
+    rgb: [ 0, 255, 0 ]
+    lower: [ 70, 60, 20 ]
+    upper: [ 100, 150, 150 ]
+  2:
+    name: blue
+    symbol: B
+    rgb: [ 0, 187, 249 ]
+    lower: [ 100, 80, 30 ]
+    upper: [ 120, 180, 190 ]
+  3:
+    name: red
+    symbol: R
+    rgb: [ 45, 0, 247 ]
+    lower: [ 0, 140, 110 ]
+    upper: [ 4, 215, 160 ]
+  4:
+    name: orange
+    symbol: O
+    rgb: [ 120, 1, 22 ]
+    lower: [ 5, 200, 130 ]
+    upper: [ 8, 255, 255 ]
+  5:
+    name: yellow
+    symbol: Y
+    rgb: [ 0, 18, 51 ]
+    lower: [ 15, 100, 120 ]
+    upper: [ 25, 255, 255 ]

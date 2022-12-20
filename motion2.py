@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import yaml
 
 from src import *
 
@@ -18,11 +19,11 @@ class CubePosition:
 
     def release_level(self, rotated: bool = False):
         r = 1 if rotated else 0
-        return [self.x, self.y, 120, self.angle + r*90, 90, 0]
+        return [self.x, self.y, 50, self.angle + r*90, 90, 0]
 
     def operational_level(self, rotated: bool = False):
         r = 1 if rotated else 0
-        return [self.x, self.y, 80, self.angle + r*90, 90, 0]
+        return [self.x, self.y, 100, self.angle + r*90, 90, 0]
 
     def transport_level(self, rotated: bool = False):
         r = 1 if rotated else 0
@@ -72,8 +73,9 @@ def line_trajectory(commander, x0, x1, step=5):
         sol.append(prev_x)
     return np.array(sol)
 
-def move_cube(commander, x0: CubePosition, x1: CubePosition):
-    center_cube(commander, x0)
+def move_cube(commander, x0: CubePosition, x1: CubePosition, adjust: bool):
+    if adjust:
+        center_cube(commander, x0)
     sol = line_trajectory(commander, x0.operational_level(), x0.cube_level())
     move_spline(sol, commander, 'poly', 2)
     
@@ -89,6 +91,7 @@ def move_cube(commander, x0: CubePosition, x1: CubePosition):
     sol = line_trajectory(commander, x1.transport_level(), x1.release_level())
     move_spline(sol, commander, 'poly', 2)
 
+    commander.wait_ready()
     robCRSgripper(commander, RELEASE)
     commander.wait_ready()
     
@@ -128,6 +131,27 @@ def center_cube(commander, x: CubePosition):
     move_spline(sol, commander, 'poly', 2)
 
 
+def calibrate():
+    robot = robCRS97()
+    tty_dev = '/dev/ttyUSB0'
+    commander = Commander(robot)  # initialize commander
+    commander.open_comm(tty_dev, speed=19200)  # connect to control unit
+
+    calib_cfg = yaml.safe_load(open('conf/calibration.yaml', 'r'))
+
+    coords = calib_cfg["coords"]
+
+    last_coord = coords[0]
+    adjust = True
+
+    for coord in coords[1:]:
+        p0 = CubePosition(last_coord[0], last_coord[1], 0)
+        p1 = CubePosition(coord[0], coord[1], 0)
+        move_cube(commander, p0, p1, adjust)
+        
+        last_coord = coord
+        adjust = False
+
 
 def main():
     robot = robCRS97()
@@ -135,20 +159,21 @@ def main():
     commander = Commander(robot)  # initialize commander
     commander.open_comm(tty_dev, speed=19200)  # connect to control unit
 
-    # commander.init(reg_type=None, max_speed=None, hard_home=True)
-    # robCRSgripper(commander, RELEASE)
-    # commander.wait_ready()
+    commander.init(reg_type=None, max_speed=None, hard_home=True)
+    robCRSgripper(commander, RELEASE)
+    commander.wait_ready()
 
-    # p0 = CubePosition(400, -200, 0)
-    # p1 = CubePosition(400, 200, 0)
-    p0 = CubePosition(615.6, -8.6, -14.36)
-    p1 = CubePosition(386.1, -128, -82.18)
+    # # p0 = CubePosition(400, -200, 0)
+    # # p1 = CubePosition(400, 200, 0)
+    # p0 = CubePosition(350, 140, 0)
+    # p1 = CubePosition(500, -290, 0)
 
-    # sol = line_trajectory(commander, p1.transport_level(), p1.chill_level())
-    # move_spline(sol, commander, 'poly', 2)
+    # # sol = line_trajectory(commander, p1.transport_level(), p1.chill_level())
+    # # move_spline(sol, commander, 'poly', 2)
 
-    move_cube(commander, p0, p1)
-    # center_cube(commander, p0)
+    # move_cube(commander, p0, p1)
+    # # center_cube(commander, p0)
+    calibrate()
 
 if __name__ == "__main__":
     main()
