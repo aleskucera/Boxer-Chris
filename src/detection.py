@@ -7,6 +7,8 @@ import cv2 as cv
 import numpy as np
 from sklearn.cluster import DBSCAN
 
+from .objects import ApproxPolygon, Square
+
 IMAGE_NUMBER = 8
 
 MIN_AREA = 1000
@@ -25,76 +27,10 @@ DB_EPSILON = 5
 DB_MIN_SAMPLES = 2
 
 
-class ApproxPolygon:
-    def __init__(self, contour):
-        self.length = cv.arcLength(contour, True)
-        self.polygon = cv.approxPolyDP(contour, DP_EPSILON * self.length, True).reshape(-1, 2)
-        self.area = cv.contourArea(self.polygon)
-
-    def area_in_range(self, min_area=MIN_AREA, max_area=MAX_AREA):
-        return min_area < self.area < max_area
-
-    def is_square(self, max_cos=MAX_COS, max_len_ratio=MAX_LEN_RATIO):
-        if len(self.polygon) == 4 and cv.isContourConvex(self.polygon):
-            c, c1, c2 = self.polygon, np.roll(self.polygon, 1, axis=0), np.roll(self.polygon, 2, axis=0)
-
-            lengths = [np.sqrt((c[i][0] - c1[i][0]) ** 2 + (c[i][1] - c1[i][1]) ** 2) for i in range(4)]
-            cos_angles = [self.angle_cos(c[i], c1[i], c2[i]) for i in range(4)]
-
-            if max(cos_angles) < max_cos and max(lengths) / min(lengths) < max_len_ratio:
-                return True
-
-        return False
-
-    @staticmethod
-    def angle_cos(p0, p1, p2):
-        d1, d2 = (p0 - p1).astype('float'), (p2 - p1).astype('float')
-        return abs(np.dot(d1, d2) / np.sqrt(np.dot(d1, d1) * np.dot(d2, d2)))
-
-
-class Square:
-    def __init__(self, contour, color=None):
-        self.id = None
-        self.color = color
-        self.symbol = None
-        self.color_name = None
-
-        rect = cv.minAreaRect(contour)
-        self.corners = cv.boxPoints(rect).astype(int)
-
-        (x, y), (w, h), angle = rect
-
-        self.area = w * h
-        self.angle = -angle
-        self.width = int(w)
-        self.height = int(h)
-        self.center = (int(x), int(y))
-
-        self.outer_square = None
-
-    def is_inside(self, point: tuple):
-        point = tuple(map(float, point))
-        return cv.pointPolygonTest(self.corners, point, False) > 0
-
-    def __lt__(self, other):
-        return self.area < other.area
-
-    def __gt__(self, other):
-        return self.area > other.area
-
-    def __eq__(self, other):
-        return self.area == other.area
-
-    def __ne__(self, other):
-        return self.area != other.area
-
-
-def detect_squares(directory: str, main_image: np.ndarray):
+def detect_squares(directory: str, main_image: np.ndarray, config: dict):
     contours, squares = [], []
 
     hsv_image = cv.cvtColor(main_image, cv.COLOR_BGR2HSV)
-
-    config = yaml.safe_load(open('..conf/detection.yaml', 'r'))
 
     # Find contours
     contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
@@ -136,7 +72,7 @@ def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
 
     for contour in contours:
         poly = ApproxPolygon(contour)
-        if poly.area_in_range() and poly.is_square():
+        if poly.area_in_range(min_area=MIN_AREA, max_area=MAX_AREA) and poly.is_square(max_cos=MAX_COS, max_len_ratio=MAX_LEN_RATIO):
             vectors.append(poly.polygon.reshape(8, ))
 
     vectors = np.array(vectors)
@@ -147,7 +83,7 @@ def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
 
 def filter_outers(squares: list) -> list:
     for s1, s2 in itertools.combinations(squares, 2):
-        if s1.is_inside(s2.center) or s2.is_inside(s1.center):
+        if s1.is_inside((s2.x, s2.y)) or s2.is_inside((s1.x, s1.y)):
             if s1 > s2:
                 s1.outer_square = True
             else:
@@ -179,22 +115,22 @@ def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
     return squares
 
 
-if __name__ == '__main__':
-    img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
+# if __name__ == '__main__':
+#     img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
 
-    start = time.time()
-    square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img)
-    end = time.time()
+#     start = time.time()
+#     square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img)
+#     end = time.time()
 
-    print(f'Found {len(square_list)} squares in {end - start} seconds')
+#     print(f'Found {len(square_list)} squares in {end - start} seconds')
 
-    for s in square_list:
-        cv.drawContours(img, [s.corners], 0, s.color[::-1], 3)
+#     for s in square_list:
+#         cv.drawContours(img, [s.corners], 0, s.color[::-1], 3)
 
-        cv.putText(img, f'{int(-s.angle)}', (int(s.center[0] - 10), int(s.center[1] + 10)),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.8, s.color[::-1], 2, cv.LINE_AA)
+#         cv.putText(img, f'{int(-s.angle)}', (int(s.center[0] - 10), int(s.center[1] + 10)),
+#                    cv.FONT_HERSHEY_SIMPLEX, 0.8, s.color[::-1], 2, cv.LINE_AA)
 
-    # cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
-    cv.imshow('img', img)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+#     # cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
+#     cv.imshow('img', img)
+#     cv.waitKey(0)
+#     cv.destroyAllWindows()

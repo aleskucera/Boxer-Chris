@@ -7,31 +7,7 @@ from src import *
 GRIP = 1
 RELEASE = -1
 
-class CubePosition:
-    def __init__(self, x, y, angle):
-        self.x = x
-        self.y = y
-        self.angle = angle
 
-    def cube_level(self, rotated: bool = False):
-        r = 1 if rotated else 0
-        return [self.x, self.y, 50, self.angle + r*90, 90, 0]
-
-    def release_level(self, rotated: bool = False):
-        r = 1 if rotated else 0
-        return [self.x, self.y, 50, self.angle + r*90, 90, 0]
-
-    def operational_level(self, rotated: bool = False):
-        r = 1 if rotated else 0
-        return [self.x, self.y, 100, self.angle + r*90, 90, 0]
-
-    def transport_level(self, rotated: bool = False):
-        r = 1 if rotated else 0
-        return [self.x, self.y, 150, self.angle + r*90, 90, 0]
-    
-    def chill_level(self, rotated: bool = False):
-        r = 1 if rotated else 0
-        return [self.x, self.y, 300, self.angle + r*90, 90, 0]
 
 def move_spline(trajectory, commander, spline, order):
     spline_params = []
@@ -97,10 +73,7 @@ def move_cube(commander, x0: CubePosition, x1: CubePosition, adjust: bool):
     
     sol = line_trajectory(commander, x1.release_level(), x1.operational_level())
     move_spline(sol, commander, 'poly', 2)
-
-    p = CubePosition(400, 200, 0)
-    sol = line_trajectory(commander, x1.operational_level(), p.operational_level())
-    move_spline(sol, commander, 'poly', 2)
+    
 
 def center_cube(commander, x: CubePosition):
     sol = line_trajectory(commander, x.operational_level(), x.cube_level())
@@ -148,7 +121,7 @@ def calibrate():
         p0 = CubePosition(last_coord[0], last_coord[1], 0)
         p1 = CubePosition(coord[0], coord[1], 0)
         move_cube(commander, p0, p1, adjust)
-        
+
         last_coord = coord
         adjust = False
 
