@@ -4,7 +4,7 @@ default_settings:
   gamma: 1.0
   pan: 8
   tilt: 2
-  shutter: 57.453
+  shutter: 27.453
   gain: 0
   frame_rate: 15
   white_balance_red: 500

@@ -121,15 +121,15 @@ def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
         # Find squares in every color channel
         for channel in cv.split(img):
             for threshold in range(lower, upper, step):
-                _retval, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
-                cnts, _hierarchy = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+                _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
+                cnts, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
                 contours.extend(cnts)
 
     return contours
 
 
 def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
-                            min_samples: int = DB_MIN_SAMPLES) -> tuple[np.ndarray, np.ndarray]:
+                            min_samples: int = DB_MIN_SAMPLES) -> tuple:
     vectors = []
 
     for contour in contours:
