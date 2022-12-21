@@ -15,11 +15,11 @@ MIN_AREA = 1000
 MAX_AREA = 100000
 
 MAX_COS = 0.05
-MAX_LEN_RATIO = 1.08
+MAX_LEN_RATIO = 1.04
 
 MIN_THRESHOLD = 0
 MAX_THRESHOLD = 255
-STEP = 5
+STEP = 2
 
 DP_EPSILON = 0.05
 
@@ -111,6 +111,8 @@ def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
 
         square.color = config['colors'][np.argmax(colors)]['rgb']
         square.symbol = config['colors'][np.argmax(colors)]['symbol']
+        square.color_name = config['colors'][np.argmax(colors)]['name']
+        square.id = (np.abs(np.array(config['ids']) - square.area)).argmin()
 
     return squares
 

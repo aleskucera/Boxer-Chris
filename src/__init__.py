@@ -10,4 +10,5 @@ from .calibration import calibrate
 from .detection import detect_squares
 from .image import set_up_camera, capture_images
 from .objects import ApproxPolygon, Square, CubePosition
+from .motion import move_cube, move
 

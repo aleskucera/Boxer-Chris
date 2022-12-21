@@ -7,13 +7,6 @@ import PyCapture2
 import numpy as np
 
 
-def convert_coordinates(x: np.ndarray) -> np.ndarray:
-    calib_cfg = yaml.safe_load(open('conf/calibration.yaml', 'r'))
-    A = np.array(calib_cfg['matrix'])
-    b = np.array(calib_cfg['vector'])[..., np.newaxis]
-    return A@x + b
-
-
 def set_up_camera(config: dict):
     # Load the configuration file
     # camera_cfg = yaml.safe_load(open('../conf/camera.yaml', 'r'))

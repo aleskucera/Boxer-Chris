@@ -6,7 +6,7 @@ from scipy.optimize import least_squares
 
 from .image import capture_images
 from .detection import detect_squares
-from .motion import center_cube, move_cube_calib
+from .motion import center_cube
 from .objects import CubePosition, Square
 
 DIRECTORY = 'camera/images/'
@@ -38,10 +38,14 @@ def calibrate(commander, camera, calib_config: dict, camera_config: dict, detect
         squares = detect_squares(DIRECTORY, image, detection_cfg)
 
         if len(squares) == 1:
-            print('Detection ok')
+            print('Detection was succesfull')
             camera_coords.append([squares[0].x, squares[0].y])
         else:
             print('fuck')
+
+        cv.drawContours(image, [squares[0].corners], 0, squares[0].color[::-1], 3)
+
+        cv.imwrite('output.png', image)
     
     camera_coords = np.array(camera_coords).T
 

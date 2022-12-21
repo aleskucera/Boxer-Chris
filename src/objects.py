@@ -31,6 +31,7 @@ class ApproxPolygon:
 
 class Square:
     def __init__(self, contour: np.ndarray, color=None):
+        self.id = 0
         self.color = color
         self.symbol = None
         self.color_name = None
@@ -42,7 +43,7 @@ class Square:
 
         self.x = int(x)
         self.y = int(y)
-        self.area = w * h
+        self.area = cv.contourArea(contour)
         self.angle = -angle
         self.width = int(w)
         self.height = int(h)
@@ -52,6 +53,14 @@ class Square:
     def is_inside(self, point: tuple):
         point = tuple(map(float, point))
         return cv.pointPolygonTest(self.corners, point, False) > 0
+
+    def create_cube(self, A: list, b: list):
+        camera_coords = np.array([[self.x], [self.y]])
+        A = np.array(A)
+        b = np.array(b)[..., np.newaxis]
+        global_coords = A@camera_coords + b
+        return Cube(global_coords[0], global_coords[1], self.angle, self.area)
+
 
     def __lt__(self, other):
         return self.area < other.area
@@ -64,6 +73,23 @@ class Square:
 
     def __ne__(self, other):
         return self.area != other.area
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        out = f' SQUARE {self.id}: {self.color_name}\n\
+                \tCenter: {(self.x, self.y)}\n\
+                \tArea: {self.area}\n\
+                \tAngle: {self.angle}\n\
+                \tWidth and height: {(self.width, self.height)}\n\n'
+        return out
+    
+    
+
+class Cube:
+    def __init__(self, x: int, y: int, angle: int, size):
+        pass
 
 
 class CubePosition:
@@ -78,7 +104,7 @@ class CubePosition:
 
     def release_level(self, rotated: bool = False):
         r = 1 if rotated else 0
-        return [self.x, self.y, 50, self.angle + r*90, 90, 0]
+        return [self.x, self.y, 80, self.angle + r*90, 90, 0]
 
     def operational_level(self, rotated: bool = False):
         r = 1 if rotated else 0
