@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
         if action in ['graph', 'circle_ptp', 'circle_spline']:
             # sol = line_trajectory(commander, [600, 0, 800, 0, 0, 0], [300, 0, 800, 0, 0, 0])
-            sol = line_trajectory(commander, [400, 400, 50, 0, 90, 0], [400, 400, 300, 0, 90, 0])
+            sol = line_trajectory(commander, [400, 400, 300, 0, 90, 0], [400, 400, 100, 0, 90, 0])
 
             if action == 'graph':
                 e = Graph(sol)

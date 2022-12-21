@@ -1,0 +1,29 @@
+base_position:
+  x: 300
+  y: -190
+  z: 300
+  angle: 90
+
+gripper:
+  2: 
+    grip_power: 2
+    cube_level: 47.5
+
+  3: 
+    grip_power: 1
+    cube_level: 50
+
+  4: 
+    grip_power: 0.75
+    cube_level: 52.5
+  
+  5:
+    grip_power: 0.75
+    cube_level: 55
+
+  6:
+    grip_power: 0.5
+    cube_level: 60
+
+
+  
