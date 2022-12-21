@@ -1,70 +1,46 @@
 colors:
   0:
-    name: black
+    color: black
     symbol: D
     rgb: [ 255, 255, 255 ]
     lower: [ 100, 0, 0 ]
     upper: [ 180, 100, 70 ]
   1:
-    name: green
+    color: green
     symbol: G
     rgb: [ 0, 255, 0 ]
     lower: [ 70, 60, 20 ]
     upper: [ 100, 150, 150 ]
   2:
-    name: blue
+    color: blue
     symbol: B
     rgb: [ 0, 187, 249 ]
     lower: [ 100, 80, 30 ]
     upper: [ 120, 180, 190 ]
   3:
-    name: red
+    color: red
     symbol: R
     rgb: [ 45, 0, 247 ]
     lower: [ 0, 140, 110 ]
     upper: [ 4, 215, 160 ]
   4:
-    name: orange
+    color: orange
     symbol: O
     rgb: [ 120, 1, 22 ]
     lower: [ 5, 200, 130 ]
     upper: [ 8, 255, 255 ]
   5:
-    name: yellow
+    color: yellow
     symbol: Y
     rgb: [ 0, 18, 51 ]
     lower: [ 15, 100, 120 ]
     upper: [ 25, 255, 255 ]
 
 ids:
-  - 2128
-  - 3357
-  - 4680
-  - 5810
-  - 7737
-  - 9341
-  - 10643
-
-center:
-  0: 
-    area: 2509
-    wh: [50, 50]
-  1:
-    area: 3198
-    wh: [57, 56]
-  2:
-    area: 3232
-    wh: [66, 64]
-  3:
-    area: 6012
-    wh: [78, 77] 
-  4:
-    area: 6890
-    wh: [82, 84] 
-  5:
-    area: 9512
-    wh: [98, 97] 
-  6:
-    center: [641, 498]
-    area: 6012
-    wh: [104, 102] 
+  - 2100
+  - 3200
+  - 4200
+  - 5400
+  - 7000
+  - 8400
+  - 10500

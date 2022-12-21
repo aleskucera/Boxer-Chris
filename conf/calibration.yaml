@@ -1,14 +1,11 @@
-matrix: [[-0.5541694,  -0.00171818], [ 0.00079116,  0.53674227]]
-vector: [ 815.7822846,  -332.96516684]
-
-base_position: 
+base_position:
   x: 500
   y: -290
 
-positions:   
+positions:
   - x: 350
     y: -290
-  
+
   - x: 350
     y: -75
 

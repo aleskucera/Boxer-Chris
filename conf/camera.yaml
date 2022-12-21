@@ -1,3 +1,5 @@
+img_directory: camera/images/
+
 default_settings:
   brightness: 6.238
   exposure: 2.414

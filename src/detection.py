@@ -1,78 +1,123 @@
 import os
-import time
 import itertools
 
-import yaml
 import cv2 as cv
 import numpy as np
 from sklearn.cluster import DBSCAN
 
 from .objects import ApproxPolygon, Square
 
-IMAGE_NUMBER = 8
-
-MIN_AREA = 1000
-MAX_AREA = 100000
-
 MAX_COS = 0.05
-MAX_LEN_RATIO = 1.04
+MAX_LEN_RATIO = 1.05
 
+STEP = 5
 MIN_THRESHOLD = 0
-MAX_THRESHOLD = 255
-STEP = 2
+MAX_THRESHOLD = 250
 
-DP_EPSILON = 0.05
-
-DB_EPSILON = 5
-DB_MIN_SAMPLES = 2
+DB_EPSILON = 3
+DB_MIN_SAMPLES = 1
 
 
 def detect_squares(directory: str, main_image: np.ndarray, config: dict):
+    """Detects squares in the given directory and returns a list of Square objects
+    :param directory: Directory containing images of the cubes
+    :param main_image: Image for which the color of the squares will be detected
+    :param config: Configuration file
+    """
     contours, squares = [], []
 
     hsv_image = cv.cvtColor(main_image, cv.COLOR_BGR2HSV)
 
     # Find contours
     contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
+    # contours = find_contours_laplacian(directory)
 
     # Filter out contours that are not squares and cluster them
     labels, vectors = cluster_square_contours(contours)
 
+    contours = vectors.reshape(-1, 4, 1, 2)
+
     # Create Square objects
     for i in range(np.max(labels) + 1):
-        mean = np.mean(vectors[labels == i], axis=0, dtype=np.int32).reshape(4, 2)
-        squares.append(Square(mean))
+        tmp = contours[labels == i]
+        idx = np.argmax([cv.contourArea(c) for c in tmp])
+        # mean = np.mean(contours[labels == i], axis=0, dtype=np.int32)
+        squares.append(Square(tmp[idx]))
 
     # Filter out squares that are inside other squares
     squares = filter_outers(squares)
 
-    # Find colors of squares
-    squares = assign_color(squares, hsv_image, config)
+    # Find color of each square
+    squares = assign_attributes(squares, hsv_image, config)
     return squares
 
 
-def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
+def angle_cos(p0, p1, p2) -> float:
+    d1, d2 = (p0 - p1).astype('float'), (p2 - p1).astype('float')
+    return abs(np.dot(d1, d2) / np.sqrt(np.dot(d1, d1) * np.dot(d2, d2)))
+
+
+def max_cos(contour: np.ndarray) -> float:
+    contour = contour.reshape(-1, 2)
+    c, c1, c2 = contour, np.roll(contour, 1, axis=0), np.roll(contour, 2, axis=0)
+
+    cos_angles = [angle_cos(c[i], c1[i], c2[i]) for i in range(4)]
+    return max(cos_angles)
+
+
+def find_contours_laplacian(directory: str) -> list:
     contours = []
     for file in os.scandir(directory):
         img = cv.imread(file.path)
 
-        # Find squares in every color channel
+        # Apply bilateral filter to reduce noise
+        img = cv.bilateralFilter(img, 50, 15, 15)
+        img = cv.GaussianBlur(img, (5, 5), 0)
+
+        for channel in cv.split(img):
+            # Apply Laplacian filter
+            laplacian = cv.Laplacian(channel, 10, cv.CV_64F)
+            laplacian = np.uint8(np.absolute(laplacian))
+
+            # Find contours
+            new_contours, _ = cv.findContours(laplacian, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+            contours.extend(new_contours)
+
+    return contours
+
+
+def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
+    """Finds contours in the given directory
+    :param directory: Directory containing images of the cubes
+    :param lower: Lower threshold
+    :param upper: Upper threshold
+    :param step: Step size for threshold
+    """
+    contours = []
+    for file in os.scandir(directory):
+        img = cv.imread(file.path)
+
         for channel in cv.split(img):
             for threshold in range(lower, upper, step):
                 _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
-                cnts, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-                contours.extend(cnts)
+                new_contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+                contours.extend(new_contours)
 
     return contours
 
 
 def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
                             min_samples: int = DB_MIN_SAMPLES) -> tuple:
+    """Clusters contours that are squares
+    :param contours: Contours to cluster
+    :param eps: DBSCAN epsilon
+    :param min_samples: DBSCAN min_samples
+    """
     vectors = []
-
     for contour in contours:
         poly = ApproxPolygon(contour)
-        if poly.area_in_range(min_area=MIN_AREA, max_area=MAX_AREA) and poly.is_square(max_cos=MAX_COS, max_len_ratio=MAX_LEN_RATIO):
+        if poly.area_in_range(min_area=1000, max_area=100000) and \
+                poly.is_square(max_cos=MAX_COS, max_len_ratio=MAX_LEN_RATIO):
             vectors.append(poly.polygon.reshape(8, ))
 
     vectors = np.array(vectors)
@@ -82,6 +127,9 @@ def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
 
 
 def filter_outers(squares: list) -> list:
+    """Filters out squares that are outside the other squares
+    :param squares: List of Square objects
+    """
     for s1, s2 in itertools.combinations(squares, 2):
         if s1.is_inside((s2.x, s2.y)) or s2.is_inside((s1.x, s1.y)):
             if s1 > s2:
@@ -92,7 +140,12 @@ def filter_outers(squares: list) -> list:
     return [square for square in squares if not square.outer_square]
 
 
-def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
+def assign_attributes(squares: list, hsv_image: np.ndarray, config: dict) -> list:
+    """Assigns attributes to the squares
+    :param squares: List of Square objects
+    :param hsv_image: HSV image
+    :param config: Configuration file
+    """
     for square in squares:
         colors = []
 
@@ -109,30 +162,9 @@ def assign_color(squares: list, hsv_image: np.ndarray, config: dict) -> list:
             filtered_image = cv.inRange(square_hsv, lower, upper)
             colors.append(np.sum(filtered_image))
 
-        square.color = config['colors'][np.argmax(colors)]['rgb']
+        square.vis_color = config['colors'][np.argmax(colors)]['rgb']
         square.symbol = config['colors'][np.argmax(colors)]['symbol']
-        square.color_name = config['colors'][np.argmax(colors)]['name']
+        square.color = config['colors'][np.argmax(colors)]['color']
         square.id = (np.abs(np.array(config['ids']) - square.area)).argmin()
 
     return squares
-
-
-# if __name__ == '__main__':
-#     img = cv.imread(f'../camera/images{IMAGE_NUMBER}/red.png')
-
-#     start = time.time()
-#     square_list = detect_squares(f'../camera/images{IMAGE_NUMBER}', img)
-#     end = time.time()
-
-#     print(f'Found {len(square_list)} squares in {end - start} seconds')
-
-#     for s in square_list:
-#         cv.drawContours(img, [s.corners], 0, s.color[::-1], 3)
-
-#         cv.putText(img, f'{int(-s.angle)}', (int(s.center[0] - 10), int(s.center[1] + 10)),
-#                    cv.FONT_HERSHEY_SIMPLEX, 0.8, s.color[::-1], 2, cv.LINE_AA)
-
-#     # cv.imwrite(f'../output/image{IMAGE_NUMBER}.png', img)
-#     cv.imshow('img', img)
-#     cv.waitKey(0)
-#     cv.destroyAllWindows()

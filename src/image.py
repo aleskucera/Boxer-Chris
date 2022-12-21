@@ -1,16 +1,20 @@
 import os
 import time
 
-import yaml
 import cv2 as cv
-import PyCapture2
 import numpy as np
+
+try:
+    import PyCapture2
+except ImportError:
+    print('PyCapture2 not found')
 
 
 def set_up_camera(config: dict):
-    # Load the configuration file
-    # camera_cfg = yaml.safe_load(open('../conf/camera.yaml', 'r'))
-    
+    """Sets up the camera and returns a camera object
+    :param config: Configuration file
+    """
+
     # Connect to the camera
     bus = PyCapture2.BusManager()
     camera = PyCapture2.Camera()
@@ -19,7 +23,7 @@ def set_up_camera(config: dict):
 
     # Set the camera settings
     settings = config['default_settings']
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.WHITE_BALANCE, 
+    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.WHITE_BALANCE,
                        valueA=settings['white_balance_red'], valueB=settings['white_balance_blue'])
     camera.setProperty(type=PyCapture2.PROPERTY_TYPE.SHUTTER, absValue=settings['shutter'], autoManualMode=False)
     camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=settings['gain'], autoManualMode=False)
@@ -28,12 +32,15 @@ def set_up_camera(config: dict):
     return camera
 
 
-def capture_images(camera: PyCapture2.Camera, directory: str, config: dict):
-
+def capture_images(camera, directory: str, config: dict):
+    """Captures images from the camera and saves them to the given directory
+    :param camera: Camera object
+    :param directory: Directory to save the images to
+    :param config: Configuration file
+    """
     os.makedirs(directory, exist_ok=True)
 
     for color, value in config['gain'].items():
-
         # Set the gain to the value for the current color
         camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=value, autoManualMode=False)
         time.sleep(0.1)
@@ -48,14 +55,3 @@ def capture_images(camera: PyCapture2.Camera, directory: str, config: dict):
         cv.imwrite(image_path, cv_image)
 
         print(f'Captured image for {color} cubes.')
-
-
-def draw_squares(image: np.ndarray, squares: np.ndarray):
-    for s in squares:
-        cv.drawContours(image, [s.corners], 0, s.color[::-1], 3)
-        cv.putText(image, f'{s.center}', s.corners[0],
-                   cv.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv.LINE_AA)
-    # Display the squares
-    cv.imshow('image', image)
-    cv.waitKey(0)
-

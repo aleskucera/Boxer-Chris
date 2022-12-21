@@ -1,11 +1,74 @@
 import numpy as np
 
-from .objects import CubePosition
+from .objects import Cube
 from .robCRSgripper import robCRSgripper
 from .interpolation import interpolate_poly, interpolate_p_spline, interpolate_b_spline
 
-GRIP = 0.5
-RELEASE = -1
+
+def move_cube(commander, c0: Cube, c1: Cube, off_screen_pos: list, center_dest: bool = True):
+    """ Moves the cube from c0 to c1. """
+    # Center cubes
+    if center_dest:
+        c1 = center_cube(commander, c1)
+    c0 = center_cube(commander, c0)
+
+    # Move to the cube
+    move(commander, c0.operational_level, c0.cube_level)
+
+    # Grip the cube
+    robCRSgripper(commander, c0.grip_power)
+    commander.wait_gripper_ready()
+
+    # Move to the destination
+    move(commander, c0.cube_level, c0.transport_level)
+    move(commander, c0.transport_level, c1.transport_level)
+    if center_dest:
+        move(commander, c1.transport_level, c1.operational_level)
+    else:
+        move(commander, c1.transport_level, c1.cube_level)
+
+    # Release the cube
+    robCRSgripper(commander, c1.grip_power)
+    commander.wait_gripper_ready()
+
+    # Move to the off-screen position
+    move(commander, c1.cube_level, c1.operational_level)
+    move(commander, c1.operational_level, off_screen_pos)
+
+
+def center_cube(commander, c: Cube):
+    """ Centers the cube in the gripper and sets the cube angle to 0°. """
+
+    # Move to the cube
+    move(commander, c.operational_level, c.cube_level)
+
+    # Grip the cube and rotate it to 0 degrees
+    robCRSgripper(commander, c.grip_power)
+    commander.wait_gripper_ready()
+
+    current_position = c.cube_level
+    c.angle = 0
+
+    move(commander, current_position, c.cube_level)
+
+    robCRSgripper(commander, -1)
+    commander.wait_gripper_ready()
+
+    # Rotate the gripper
+    move(commander, c.cube_level, c.operational_level)
+    move(commander, c.operational_level, c.operational_level_rot)
+    move(commander, c.operational_level_rot, c.cube_level_rot)
+
+    # Grip and release the cube
+    robCRSgripper(commander, c.grip_power)
+    commander.wait_gripper_ready()
+    robCRSgripper(commander, -1)
+    commander.wait_gripper_ready()
+
+    # Move to the operational position
+    move(commander, c.cube_level_rot, c.operational_level_rot)
+
+    return c
 
 
 def move_spline(trajectory, commander, spline, order):
@@ -29,6 +92,7 @@ def move_spline(trajectory, commander, spline, order):
         commander.splinemv(spline_params[i], order=order)
     commander.wait_ready(sync=True)
 
+
 def move(commander, x0, x1, step=3):
     rng = int(np.linalg.norm(np.array(x0) - np.array(x1)) / step)
     normal = (np.array(x1) - np.array(x0)) / np.linalg.norm(np.array(x0) - np.array(x1))
@@ -41,55 +105,3 @@ def move(commander, x0, x1, step=3):
 
     sol = np.array(sol)
     move_spline(sol, commander, 'poly', 3)
-
-
-def move_cube(commander, p0: CubePosition, p1: CubePosition, config: dict, center_dest: bool = True):
-    p = config['base_position']
-    off_screen_position = [p['x'], p['y'], p['z'], 0, p['angle'], 0]
-
-    if center_dest:
-        center_cube(commander, p1)
-    center_cube(commander, p0)
-    
-    move(commander, p0.operational_level(), p0.cube_level())
-    
-    robCRSgripper(commander, GRIP)
-    commander.wait_gripper_ready()
-
-    move(commander, p0.cube_level(), p0.transport_level())
-    move(commander, p0.transport_level(), p1.transport_level())
-    move(commander, p1.transport_level(), p1.cube_level())
-
-    robCRSgripper(commander, RELEASE)
-    commander.wait_gripper_ready()
-    
-    move(commander, p1.cube_level(), p1.operational_level())
-    move(commander, p1.operational_level(), off_screen_position)
-    
-
-def center_cube(commander, x: CubePosition):
-    move(commander, x.operational_level(), x.cube_level())
-
-    robCRSgripper(commander, GRIP)
-    commander.wait_gripper_ready()
-
-    robCRSgripper(commander, RELEASE)
-    
-    commander.wait_gripper_ready()
-
-    move(commander, x.cube_level(), x.operational_level())
-    move(commander, x.operational_level(), x.operational_level(rotated=True))
-    move(commander, x.operational_level(rotated=True), x.cube_level(rotated=True))
-
-    robCRSgripper(commander, GRIP)
-    commander.wait_gripper_ready()
-
-    robCRSgripper(commander, RELEASE)
-    commander.wait_gripper_ready()
-
-    move(commander, x.cube_level(rotated=True), x.operational_level(rotated=True))
-
-
-
-
-
