@@ -1,5 +1,6 @@
 import os
 import time
+from copy import deepcopy
 
 import yaml
 import cv2 as cv
@@ -52,13 +53,11 @@ def get_transformation(hard_home: bool = False):
 
     camera = set_up_camera(camera_cfg)
 
-    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
     robCRSgripper(commander, -1)
-    commander.wait_ready()
+    commander.wait_gripper_ready()
+    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
 
     calibrate(commander, camera, calib_cfg, camera_cfg, detection_cfg, motion_cfg)
-
-    commander.close_comm()
 
 
 def test_transformation(hard_home: bool = False):
@@ -72,31 +71,30 @@ def test_transformation(hard_home: bool = False):
 
     camera = set_up_camera(camera_cfg)
 
-    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
     robCRSgripper(commander, -1)
-    commander.wait_ready()
+    commander.wait_gripper_ready()
+    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
+    
 
     # Center cube at initial position
-    center_cube(commander, test_cube)
+    # center_cube(commander, test_cube)
 
-    # Capture images
-    capture_images(camera, camera_cfg['img_directory'], camera_cfg)
-    image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
-    image = cv.imread(image_path)
-    squares = detect_squares(camera_cfg['img_directory'], image, detection_cfg)
+    # # Capture images
+    # capture_images(camera, camera_cfg['img_directory'], camera_cfg)
+    # image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
+    # image = cv.imread(image_path)
+    # squares = detect_squares(camera_cfg['img_directory'], image, detection_cfg)
 
-    # Visualize detected square
-    visualize_squares(image, squares, 'centers')
+    # # Visualize detected square
+    # visualize_squares(image, squares, 'centers')
 
     # Move cube to the destination position
-    dest_cube = test_cube.deepcopy()
+    dest_cube = deepcopy(test_cube)
     dest_cube.x, dest_cube.y = dest_position['x'], dest_position['y']
-    move_cube(commander, test_cube, dest_cube, motion_cfg)
+    move_cube(commander, test_cube, dest_cube, motion_cfg['off_screen_position'], center_dest=False)
 
     # Visualize detected square
-    visualize_squares(image, squares, 'centers')
-
-    commander.close_comm()
+    # visualize_squares(image, squares, 'centers')
 
 
 def demo_two_cubes(hard_home: bool = False):
@@ -110,40 +108,38 @@ def demo_two_cubes(hard_home: bool = False):
 
     camera = set_up_camera(camera_cfg)
 
-    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
     robCRSgripper(commander, -1)
-    commander.wait_ready()
+    commander.wait_gripper_ready()
+    commander.init(reg_type=None, max_speed=None, hard_home=hard_home)
 
-    # Center cube at initial position
-    center_cube(commander, test_cube)
+    while(True):
+        # Capture images
+        capture_images(camera, camera_cfg['img_directory'], camera_cfg)
+        image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
+        image = cv.imread(image_path)
+        squares = detect_squares(camera_cfg['img_directory'], image, detection_cfg)
 
-    # Capture images
-    capture_images(camera, camera_cfg['img_directory'], camera_cfg)
-    image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
-    image = cv.imread(image_path)
-    squares = detect_squares(camera_cfg['img_directory'], image, detection_cfg)
+        # Visualize detected square
+        visualize_squares(image, squares, 'ids')
+        squares.sort()
 
-    # Visualize detected square
-    visualize_squares(image, squares, 'centers')
+        # Create cube objects
+        cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
 
-    # Create cube objects
-    cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
+        # sort cubes
+        # cubes.sort()
 
-    # sort cubes
-    cubes.sort()
+        if len(cubes) == 1:
+           return 
 
-    if len(cubes) != 2:
-        print('Error: number of cubes is not 2!')
-        return
-
-    # Move cube to the destination position
-    move_cube(commander, cubes[0], cubes[1], motion_cfg)
-
-    commander.close_comm()
+        # Move cube to the destination position
+        move_cube(commander, cubes[-2], cubes[-1],  motion_cfg['off_screen_position'])
 
 
 def main():
-    detection_demo('camera/images2/', 'ids')
+    # detection_demo('camera/images2/', 'ids')
+    demo_two_cubes(True)
+    # test_transformation(False)
 
 
 if __name__ == '__main__':
