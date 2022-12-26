@@ -143,7 +143,7 @@ def demo_two_cubes(hard_home: bool = False):
 
 
 def main():
-    detection_demo('camera/images2/', 'ids')
+    detection_demo(camera_cfg['img_directory'], 'centers')
 
 
 if __name__ == '__main__':

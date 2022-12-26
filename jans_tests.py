@@ -79,6 +79,7 @@ def get_longest_array(arrays):
         lens.append(len(array))
     return max(lens)
 
+
 def main():
     squares = []
     colors = ["red", "black", "blue", "orange", "green"]

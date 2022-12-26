@@ -150,7 +150,7 @@ class Cube:
         return self.id > other.id
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self.id == other.id and self.color == other.color
 
     def __ne__(self, other):
         return self.id != other.id
