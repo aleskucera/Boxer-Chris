@@ -17,6 +17,9 @@ def visualize_squares(image, squares, mode='centers'):
         elif mode == 'angles':
             cv.putText(image, f'{square.angle}', (square.x - 10, square.y + 10),
                        cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
+        elif mode == 'parents':
+            cv.putText(image, f'{square.parent_id}', (square.x - 10, square.y + 10),
+                       cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
         else:
             raise ValueError('Unknown visualization mode: {}'.format(mode))
 

@@ -18,15 +18,13 @@ DB_EPSILON = 3
 DB_MIN_SAMPLES = 1
 
 
-def detect_squares(directory: str, main_image: np.ndarray, config: dict):
+def detect_squares(directory: str, config: dict):
     """Detects squares in the given directory and returns a list of Square objects
     :param directory: Directory containing images of the cubes
     :param main_image: Image for which the color of the squares will be detected
     :param config: Configuration file
     """
     contours, squares = [], []
-
-    hsv_image = cv.cvtColor(main_image, cv.COLOR_BGR2HSV)
 
     # Find contours
     contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
@@ -48,7 +46,7 @@ def detect_squares(directory: str, main_image: np.ndarray, config: dict):
     squares = filter_outers(squares)
 
     # Find color of each square
-    squares = assign_attributes(squares, hsv_image, config)
+    squares = assign_attributes(squares, directory, config)
     return squares
 
 
@@ -140,22 +138,32 @@ def filter_outers(squares: list) -> list:
     return [square for square in squares if not square.outer_square]
 
 
-def assign_attributes(squares: list, hsv_image: np.ndarray, config: dict) -> list:
+def assign_attributes(squares: list, img_dir: str ,config: dict) -> list:
     """Assigns attributes to the squares
     :param squares: List of Square objects
-    :param hsv_image: HSV image
+    :param img_dir: image directory
     :param config: Configuration file
     """
+    
+    images = []
+    for value in config['colors'].values():
+        image_path = os.path.join(img_dir, str(value['color']) + '.png')
+        image = cv.imread(image_path)
+        hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+        images.append(hsv_image)
+
     for square in squares:
         colors = []
 
-        # Focus on the inner part of the square
-        mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
-        cv.drawContours(mask, [square.corners], -1, 255, -1)
-        square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
-
         # Find out which color is the most dominant
-        for color in config['colors'].values():
+        for i, color in config['colors'].items():
+            hsv_image = images[i]
+
+            # Focus on the inner part of the square
+            mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
+            cv.drawContours(mask, [square.corners], -1, 255, -1)
+            square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
+        
             lower = np.array(color['lower'])
             upper = np.array(color['upper'])
 
@@ -165,6 +173,10 @@ def assign_attributes(squares: list, hsv_image: np.ndarray, config: dict) -> lis
         square.vis_color = config['colors'][np.argmax(colors)]['rgb']
         square.symbol = config['colors'][np.argmax(colors)]['symbol']
         square.color = config['colors'][np.argmax(colors)]['color']
-        square.id = (np.abs(np.array(config['ids']) - square.area)).argmin()
 
+        boundaries = config['boundaries']
+
+        for i, (ub, lb) in enumerate(zip(boundaries['upper'], boundaries['lower'])):
+            if lb < square.area < ub:
+                square.id = i
     return squares

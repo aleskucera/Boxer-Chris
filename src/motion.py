@@ -30,6 +30,7 @@ def move_cube(commander, c0: Cube, c1: Cube, off_screen_pos: list, center_dest: 
         commander.wait_gripper_ready()
 
         move(commander, c1.post_release_cube_level, c1.cube_level)
+
     else:
         move(commander, c1.transport_level, c1.cube_level)
 
@@ -38,7 +39,7 @@ def move_cube(commander, c0: Cube, c1: Cube, off_screen_pos: list, center_dest: 
     commander.wait_gripper_ready()
     
     # Move to the off-screen position
-    move(commander, c1.operational_level, off_screen_pos)
+    move(commander, c1.operational_level, off_screen_pos, step=6)
 
 
 def center_cube(commander, c: Cube, release: bool = False):
@@ -78,7 +79,7 @@ def center_cube(commander, c: Cube, release: bool = False):
     # robCRSgripper(commander, -1)
     # commander.wait_gripper_ready()
     
-    # move(commander, c.cube_level_rot, c.operational_level_rot)
+    # move(commander, c.cube_level_rot, c.operational_level_rot) 
     # move(commander, c.operational_level_rot, c.operational_level)
     # move(commander, c.operational_level, c.cube_level)
 
@@ -118,18 +119,21 @@ def move_spline(trajectory, commander, spline, order):
 
 
 def move(commander, x0, x1, step=3):
-    rng = int(np.linalg.norm(np.array(x0) - np.array(x1)) / step)
+    x0 = np.array(x0, dtype=object)
+    x1 = np.array(x1, dtype=object)
+    rng = int(np.linalg.norm(x0 - x1) / step)
     try:
-        normal = (np.array(x1) - np.array(x0)) / np.linalg.norm(np.array(x0) - np.array(x1))
+        normal = (x1 - x0) / np.linalg.norm(x0 - x1)
     except Exception:
         return None
     x = x0
     sol = [commander.find_closest_ikt(x)]
-    for i in range(rng):
+    for _ in range(rng):
         x = x + normal * step
         prev_x = commander.find_closest_ikt(x, sol[-1])
         sol.append(prev_x)
 
+    sol.append(commander.find_closest_ikt(x1, sol[-1]))
     sol = np.array(sol)
 
     try:
@@ -139,7 +143,7 @@ def move(commander, x0, x1, step=3):
         print('Not enough points for b-spline order 2')
     
     try:
-        move_spline(sol, commander, 'poly', 1)
+        move_spline(sol, commander, 'poly', 2)
         return
     except Exception:
         print('Not enough points for polynomial order 1')

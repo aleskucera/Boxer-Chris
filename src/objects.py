@@ -63,6 +63,7 @@ class Square:
         self.height = int(h)
 
         self.outer_square = None
+        self.parent_id = None
 
     def is_inside(self, point: tuple):
         point = tuple(map(float, point))
@@ -71,7 +72,7 @@ class Square:
     def create_cube(self, A: np.ndarray, b: np.ndarray, motion_config: dict):
         camera_coords = np.array([[self.x], [self.y]])
         global_coords = A @ camera_coords + b
-        return Cube(global_coords[0], global_coords[1], self.angle, self.id, motion_config, self.color)
+        return Cube(global_coords[0], global_coords[1], self.angle, self.id, self.parent_id, motion_config, self.color)
 
     def __lt__(self, other):
         return self.area < other.area
@@ -93,7 +94,8 @@ class Square:
                 \tCenter: {(self.x, self.y)}\n\
                 \tArea: {self.area}\n\
                 \tAngle: {self.angle}\n\
-                \tWidth and height: {(self.width, self.height)}\n\n'
+                \tWidth and height: {(self.width, self.height)}\n\
+                \tParent id: {self.parent_id}\n\n'
         return out
 
 
@@ -103,16 +105,15 @@ class Cube:
     The object is generated from a Square object. Its attributes are used for a motion planning.
     """
 
-    def __init__(self, x: int, y: int, angle: int, size_id: int, config: dict, color: str = None):
+    def __init__(self, x: int, y: int, angle: int, size_id: int, parent_id: int, config: dict, color: str = None):
         self.x = x
         self.y = y
         self.id = size_id
         self.angle = angle
         self.color = color
-        self.outer_id = None
         self.config = config
         self.grip_power = self.config['grip_power'][self.id]
-        self.parent_cubes = 0
+        self.parent_id = parent_id
 
     @property
     def cube_level(self) -> tuple:
@@ -146,18 +147,18 @@ class Cube:
 
     @property
     def pre_release_level(self) -> tuple:
-        z = self.config['release_level']
-        return self.x, self.y, z, self.angle, 90 - 5, 0
+        z = self.config['release_level'][self.parent_id]
+        return self.x, self.y, z, self.angle, 90 - 4, 0
 
     @property
     def release_level(self) -> tuple:
-        z = self.config['release_level']
-        return self.x - 30, self.y, z, self.angle, 90, 0 
+        z = self.config['release_level'][self.parent_id]
+        return self.x - 20, self.y, z, self.angle, 90 + 5, 0 
 
     @property
     def post_release_cube_level(self) -> tuple:
         z = self.config['cube_level'][self.id]
-        return self.x - 30, self.y, z, self.angle, 90, 0
+        return self.x - 20, self.y, z, self.angle, 90, 0
 
     def __lt__(self, other):
         return self.id < other.id

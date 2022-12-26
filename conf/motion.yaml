@@ -1,6 +1,6 @@
 off_screen_position:
-  - 300
-  - -190
+  - 230
+  - -240
   - 300
   - 0
   - 90
@@ -15,7 +15,15 @@ cube_level:
   - 50
   - 50
 
-release_level: 105
+release_level:
+  - 100
+  - 100
+  - 100
+  - 101
+  - 102
+  - 103
+  - 104
+
 operational_level: 90
 transport_level: 150
 

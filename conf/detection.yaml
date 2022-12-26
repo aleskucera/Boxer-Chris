@@ -9,8 +9,8 @@ colors:
     color: green
     symbol: G
     rgb: [ 0, 255, 0 ]
-    lower: [ 70, 60, 20 ]
-    upper: [ 100, 150, 150 ]
+    lower: [ 70, 60, 0 ]
+    upper: [ 100, 180, 150 ]
   2:
     color: blue
     symbol: B
@@ -22,7 +22,7 @@ colors:
     symbol: R
     rgb: [ 45, 0, 247 ]
     lower: [ 0, 140, 110 ]
-    upper: [ 4, 215, 160 ]
+    upper: [ 4, 255, 255 ]
   4:
     color: orange
     symbol: O
@@ -44,3 +44,22 @@ ids:
   - 7000
   - 8400
   - 10500
+
+boundaries:
+  upper:
+    - 0
+    - 0
+    - 4300
+    - 5700
+    - 7100
+    - 9000
+    - 11000
+
+  lower:
+  - 0
+  - 0
+  - 3000
+  - 4400
+  - 5900
+  - 7300
+  - 9150
