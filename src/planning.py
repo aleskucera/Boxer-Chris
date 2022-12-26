@@ -12,22 +12,23 @@ def split_cubes_by_size(cubes):
     :param cubes: array of cubes
     :return: cubes split into arrays by size
     """
+    # get sizes of all cubes
     sizes = np.array([cube.id for cube in cubes])
-    sizes = np.sort(np.unique(sizes))[::-1]
+
+    # get only unique sizes and sort them in descending order
+    sorted_sizes = np.sort(np.unique(sizes))[::-1]
+
+    # split cubes into arrays by size
     cubes_by_size = []
-    for size in sizes:
-        cubes_by_size.append([])
-        for cube in cubes:
-            if cube.id == size:
-                cubes_by_size[-1].append(cube)
+    for size in sorted_sizes:
+        cubes_by_size.append(cubes[np.where(sizes == size)])
     return np.array(cubes_by_size, dtype=object)
 
 
-def get_cubes2stack(cubes: np.ndarray, color_priority: bool, already_stacked=[], last_id=10) -> np.ndarray:
+def get_cubes2stack(cubes: np.ndarray, color_priority: bool, last_id=10) -> np.ndarray:
     """ Get cubes to stack
     :param cubes: array of cubes
     :param color_priority: if True, cubes will be stacked primarily by color
-    :param already_stacked: array of cubes that cannot be taken as small again (they are already in bigger cube)
     :return: array of all cubes in order to stack
     """
     small_cube = None
@@ -41,7 +42,7 @@ def get_cubes2stack(cubes: np.ndarray, color_priority: bool, already_stacked=[],
         cubes_by_size = split_cubes_by_size(cubes)
         cubes_by_size_and_color = sort_cubes_by_color(cubes_by_size)
         while True:
-            small_cube, big_cube, last_id = choose_big_and_small_cube(cubes_by_size_and_color, already_stacked, last_id)
+            small_cube, big_cube, last_id = choose_big_and_small_cube(cubes_by_size_and_color, last_id)
             if small_cube is None and big_cube is not None:
                 idx = np.where(cubes_by_size_and_color == big_cube)
                 cubes = np.delete(cubes, idx)
@@ -49,13 +50,12 @@ def get_cubes2stack(cubes: np.ndarray, color_priority: bool, already_stacked=[],
                 cubes_by_size_and_color = sort_cubes_by_color(cubes_by_size)
             else:
                 break
-    return small_cube, big_cube, already_stacked, last_id
+    return small_cube, big_cube, last_id
 
 
-def choose_big_and_small_cube(cubes_by_size_and_color: np.ndarray, already_stacked: list, last_id) -> (Cube, Cube):
+def choose_big_and_small_cube(cubes_by_size_and_color: np.ndarray, last_id: int) -> (Cube, Cube):
     """ Choose big and small cube to stack
     :param cubes_by_size_and_color: array of cubes split by size and then sorted by color
-    :param already_stacked: array of cubes that cannot be taken as small again (they are already in bigger cube)
     :last_id: size of the last small cube
     :return: (big cube, small cube) -> (None, None) if there are no cubes to stack
     """
@@ -65,11 +65,10 @@ def choose_big_and_small_cube(cubes_by_size_and_color: np.ndarray, already_stack
         for cube in size_category:
             if big_cube is None and last_id >= cube.id:
                 big_cube = cube
-                break
-            if small_cube is None and big_cube is not None and cube not in already_stacked:
+            elif small_cube is None and big_cube is not None and cube.parent_cubes == 0:
                 small_cube = cube
                 last_id = small_cube.id
-                already_stacked.append(small_cube)
+                cube.parent_cubes = big_cube.parent_cubes+1
                 break
     return small_cube, big_cube, last_id
 
@@ -120,9 +119,8 @@ def main():
         print("NEW ITERATION")
         print("CUBES ON TABLE:")
         print_cubes(cubes)
-        smaller_cube, bigger_cube, already_stacked, last_id = get_cubes2stack(cubes, False)
-        print("ALREADY STACKED:")
-        print(already_stacked)
+        smaller_cube, bigger_cube, last_id = get_cubes2stack(cubes, False)
+        print("CUBES TO BE STACKED:")
         print("BIG CUBE:")
         print(bigger_cube)
         print("SMALL CUBE:")

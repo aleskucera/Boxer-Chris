@@ -112,6 +112,7 @@ class Cube:
         self.outer_id = None
         self.config = config
         self.grip_power = self.config['grip_power'][self.id]
+        self.parent_cubes = 0
 
     @property
     def cube_level(self) -> tuple:
