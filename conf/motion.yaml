@@ -1,4 +1,4 @@
-base_position:
+off_screen_position:
   - 300
   - -190
   - 300
@@ -9,14 +9,14 @@ base_position:
 cube_level:
   - 100
   - 100
-  - 47.5
   - 50
-  - 52.5
-  - 55
-  - 60
+  - 50
+  - 50
+  - 50
+  - 50
 
-release_level: 80
-operation_level: 100
+release_level: 105
+operational_level: 90
 transport_level: 150
 
 grip_power:
@@ -24,9 +24,9 @@ grip_power:
   - -1
   - 1
   - 1
-  - 0.75
-  - 0.75
-  - 0.5
+  - 1
+  - 1
+  - 1
 
 
   

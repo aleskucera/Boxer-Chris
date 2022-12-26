@@ -144,6 +144,21 @@ class Cube:
         z = self.config['transport_level']
         return self.x, self.y, z, self.angle + 90, 90, 0
 
+    @property
+    def pre_release_level(self) -> tuple:
+        z = self.config['release_level']
+        return self.x, self.y, z, self.angle, 90 - 5, 0
+
+    @property
+    def release_level(self) -> tuple:
+        z = self.config['release_level']
+        return self.x - 30, self.y, z, self.angle, 90, 0 
+
+    @property
+    def post_release_cube_level(self) -> tuple:
+        z = self.config['cube_level'][self.id]
+        return self.x - 30, self.y, z, self.angle, 90, 0
+
     def __lt__(self, other):
         return self.id < other.id
 

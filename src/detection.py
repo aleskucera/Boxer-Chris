@@ -40,7 +40,7 @@ def detect_squares(directory: str, main_image: np.ndarray, config: dict):
     # Create Square objects
     for i in range(np.max(labels) + 1):
         tmp = contours[labels == i]
-        idx = np.argmax([cv.contourArea(c) for c in tmp])
+        idx = np.argmin([cv.contourArea(c) for c in tmp])
         # mean = np.mean(contours[labels == i], axis=0, dtype=np.int32)
         squares.append(Square(tmp[idx]))
 
