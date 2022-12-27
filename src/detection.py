@@ -10,9 +10,9 @@ from .objects import ApproxPolygon, Square
 MAX_COS = 0.05
 MAX_LEN_RATIO = 1.05
 
-STEP = 5
+STEP = 2
 MIN_THRESHOLD = 0
-MAX_THRESHOLD = 250
+MAX_THRESHOLD = 255
 
 DB_EPSILON = 3
 DB_MIN_SAMPLES = 1
@@ -92,14 +92,24 @@ def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
     :param step: Step size for threshold
     """
     contours = []
-    for file in os.scandir(directory):
-        img = cv.imread(file.path)
+    # for file in os.scandir(directory):
+    file = os.path.join(directory, 'red.png')
+    img = cv.imread(file)
+    img = cv.bilateralFilter(img, 10, 5, 5)
+    img = cv.bilateralFilter(img, 20, 10, 10)
+    img = cv.bilateralFilter(img, 30, 20, 20)
+    img = cv.bilateralFilter(img, 30, 30, 30)
+    img = cv.bilateralFilter(img, 20, 40, 40)
 
-        for channel in cv.split(img):
-            for threshold in range(lower, upper, step):
-                _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
-                new_contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-                contours.extend(new_contours)
+    cv.imshow(str(file), img)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+    for channel in cv.split(img):
+        for threshold in range(lower, upper, step):
+            _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
+            new_contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+            contours.extend(new_contours)
 
     return contours
 
@@ -147,7 +157,8 @@ def assign_attributes(squares: list, img_dir: str ,config: dict) -> list:
     
     images = []
     for value in config['colors'].values():
-        image_path = os.path.join(img_dir, str(value['color']) + '.png')
+        # image_path = os.path.join(img_dir, str(value['color']) + '.png')
+        image_path = os.path.join(img_dir, str('yellow') + '.png')
         image = cv.imread(image_path)
         hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
         images.append(hsv_image)

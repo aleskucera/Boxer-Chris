@@ -11,6 +11,6 @@ from .calibration import calibrate
 from .detection import detect_squares
 from .visualization import visualize_squares
 from .motion import move_cube, move, center_cube
-from .image import set_up_camera, capture_images
+from .image import set_up_camera, capture_images, capture_image
 from .objects import ApproxPolygon, Square, Cube
 from .planning import get_cubes2stack

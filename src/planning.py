@@ -3,7 +3,7 @@ import numpy as np
 import random
 import yaml
 
-from objects import Cube
+from .objects import Cube
 
 
 def split_cubes(cubes: np.ndarray, by_size: bool) -> np.ndarray:

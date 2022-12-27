@@ -18,11 +18,11 @@ cube_level:
 release_level:
   - 100
   - 100
-  - 100
-  - 102
-  - 103
-  - 104
-  - 105
+  - 101
+  - 102.5
+  - 103.5
+  - 104.5
+  - 105.5
 
 operational_level: 90
 transport_level: 150
@@ -30,11 +30,11 @@ transport_level: 150
 grip_power:
   - -1
   - -1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
 
 
   

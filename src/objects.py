@@ -112,7 +112,7 @@ class Cube:
         self.angle = angle
         self.color = color
         self.config = config
-        self.grip_power = self.config['grip_power'][self.id]
+        # self.grip_power = self.config['grip_power'][self.id]
         self.parent_id = parent_id
 
     @property

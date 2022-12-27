@@ -7,7 +7,7 @@ import cv2 as cv
 import numpy as np
 
 from src import calibrate, robCRS97, Commander, set_up_camera, robCRSgripper, move_cube, detect_squares, Cube, \
-    center_cube, capture_images, visualize_squares, get_cubes2stack, move
+    center_cube, capture_images, visualize_squares, get_cubes2stack, move, capture_image
 
 calib_cfg = yaml.safe_load(open('conf/calibration.yaml', 'r'))
 camera_cfg = yaml.safe_load(open('conf/camera.yaml', 'r'))
@@ -58,23 +58,27 @@ def detection_demo(directory: str, mode: str):
     # print(off_screen_position2)
     # move(commander, off_screen_position2, off_screen_position, step=1)
 
+    areas = []
     for _ in range(4):
         
-        capture_images(camera, directory, camera_cfg)
+        # capture_images(camera, directory, camera_cfg)
+        capture_image(camera, directory, camera_cfg, 'yellow')
 
-        image_path = os.path.join(directory, 'red.png')
+        image_path = os.path.join(directory, 'yellow.png')
         image = cv.imread(image_path)
 
         squares = detect_squares(directory, detection_cfg)
-        cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
+        # cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
+        # a = [square.area for square in squares]
+        # areas += a
 
         
         # input('prdel')
         visualize_squares(image, squares, mode)
 
         
-    print(f'Max: {max(max_list)}')
-    print(f'Min: {min(min_list)}')
+    # print(f'Max: {max(areas)}')
+    # print(f'Min: {min(areas)}')
 
 
 def get_transformation(hard_home: bool = False):
@@ -161,7 +165,7 @@ def demo_two_cubes(hard_home: bool = False):
         # Capture images
         capture_images(camera, camera_cfg['img_directory'], camera_cfg)
         image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
-        # image = cv.imread(image_path)
+        image = cv.imread(image_path)
 
         # detect squares in the images
         squares = detect_squares(camera_cfg['img_directory'], detection_cfg)
@@ -171,7 +175,7 @@ def demo_two_cubes(hard_home: bool = False):
             if (square.id, square.color) in init_squares:
                 square.parent_id = init_squares[(square.id, square.color)]
 
-        # visualize_squares(image, squares, 'parents')
+        visualize_squares(image, squares, 'parents')
 
         # Create cube objects
         all_cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
@@ -183,7 +187,7 @@ def demo_two_cubes(hard_home: bool = False):
             else:
                 print(f'Not reachable {cube}')
 
-        small_cube, big_cube = get_cubes2stack(cubes, small_cube, None)
+        small_cube, big_cube = get_cubes2stack(cubes, small_cube, 'red')
 
         # sort cubes
         # cubes.sort()
@@ -199,8 +203,8 @@ def demo_two_cubes(hard_home: bool = False):
 
 
 def main():
-    # detection_demo('camera/test/', 'ids')
-    demo_two_cubes(False)
+    detection_demo('detection/images5/', 'ids')
+    # demo_two_cubes(False)
     # test_transformation(False)
 
 
