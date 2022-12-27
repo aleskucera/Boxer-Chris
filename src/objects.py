@@ -153,12 +153,22 @@ class Cube:
     @property
     def release_level(self) -> tuple:
         z = self.config['release_level'][self.parent_id]
-        return self.x - 20, self.y, z, self.angle, 90 + 5, 0 
+        return self.x - 20, self.y, z, self.angle, 90 + 4, 0 
 
     @property
     def post_release_cube_level(self) -> tuple:
         z = self.config['cube_level'][self.id]
         return self.x - 20, self.y, z, self.angle, 90, 0
+
+    def is_reachable(self, commander) -> bool:
+        try:
+            commander.find_closest_ikt(self.transport_level_rot)
+            commander.find_closest_ikt(self.transport_level)
+            commander.find_closest_ikt(self.cube_level_rot)
+            commander.find_closest_ikt(self.cube_level)
+            return True
+        except ValueError:
+            return False
 
     def __lt__(self, other):
         return self.id < other.id

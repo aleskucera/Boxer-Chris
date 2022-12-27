@@ -19,10 +19,10 @@ release_level:
   - 100
   - 100
   - 100
-  - 101
   - 102
   - 103
   - 104
+  - 105
 
 operational_level: 90
 transport_level: 150

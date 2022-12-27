@@ -149,3 +149,9 @@ def move(commander, x0, x1, step=3):
         print('Not enough points for polynomial order 1')
         return
 
+def is_reachable(commander, c: Cube):
+    try:
+        commander.find_closest_ikt(c.cube_level)
+        return True
+    except ValueError:
+        return False

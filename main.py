@@ -174,9 +174,16 @@ def demo_two_cubes(hard_home: bool = False):
         # visualize_squares(image, squares, 'parents')
 
         # Create cube objects
-        cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
+        all_cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
 
-        small_cube, big_cube = get_cubes2stack(cubes, small_cube, "red")
+        cubes = []
+        for cube in all_cubes:
+            if cube.is_reachable(commander):
+                cubes.append(cube)
+            else:
+                print(f'Not reachable {cube}')
+
+        small_cube, big_cube = get_cubes2stack(cubes, small_cube, None)
 
         # sort cubes
         # cubes.sort()
