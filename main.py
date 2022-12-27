@@ -76,6 +76,7 @@ def detection_demo(directory: str, mode: str):
     print(f'Max: {max(max_list)}')
     print(f'Min: {min(min_list)}')
 
+
 def get_transformation(hard_home: bool = False):
     """Get transformation matrix and vector from camera to robot
     :param hard_home: if True, robot will be homed before calibration
@@ -154,13 +155,13 @@ def demo_two_cubes(hard_home: bool = False):
 
     init_squares = {(square.id, square.color): square.id for square in squares}
 
-    #small_cube = None
+    small_cube = None
 
     while True:
         # Capture images
         capture_images(camera, camera_cfg['img_directory'], camera_cfg)
         image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
-        image = cv.imread(image_path)
+        # image = cv.imread(image_path)
 
         # detect squares in the images
         squares = detect_squares(camera_cfg['img_directory'], detection_cfg)
@@ -169,24 +170,20 @@ def demo_two_cubes(hard_home: bool = False):
         for square in squares:
             if (square.id, square.color) in init_squares:
                 square.parent_id = init_squares[(square.id, square.color)]
-                print(square)
 
-        visualize_squares(image, squares, 'parents')
+        # visualize_squares(image, squares, 'parents')
 
         # Create cube objects
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
 
-        # small_cube, big_cube = get_cubes2stack(cubes, False, small_cube)
+        small_cube, big_cube = get_cubes2stack(cubes, small_cube, "red")
 
         # sort cubes
         # cubes.sort()
 
         # if not small_cube and not big_cube:
-        if len(cubes) <= 1:
-           return 
-
-        small_cube = cubes[-2]
-        big_cube = cubes[-1]
+        if small_cube is None and big_cube is None:
+            return
 
         init_squares[(small_cube.id, small_cube.color)] = big_cube.parent_id
 

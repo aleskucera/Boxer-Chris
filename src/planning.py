@@ -3,7 +3,7 @@ import numpy as np
 import random
 import yaml
 
-from objects import Cube
+from .objects import Cube
 
 
 def split_cubes(cubes: np.ndarray, by_size: bool) -> np.ndarray:
@@ -45,17 +45,14 @@ def get_cubes2stack(cubes: np.ndarray, last_small_cube: Cube, color: str) -> tup
     else:
         cubes_by_size = split_cubes(cubes, True)
         cubes_by_size_and_color = sort_categorized_cubes(cubes_by_size, False)
-        small_cube, big_cube = choose_big_and_small_cube(cubes_by_size_and_color, last_small_cube, color)
-        # while True:
-        #     small_cube, big_cube = choose_big_and_small_cube(cubes_by_size_and_color, last_small_cube, color)
-        #     if small_cube is None and big_cube is not None:
-        #         # idx = np.where(cubes_by_size_and_color == big_cube)
-        #         # cubes = np.delete(cubes, idx)
-        #         delete_cube(cubes, big_cube)
-        #         cubes_by_size = split_cubes(cubes, True)
-        #         cubes_by_size_and_color = sort_categorized_cubes(cubes_by_size, False)
-        #     else:
-        #         break
+        while True:
+            small_cube, big_cube = choose_big_and_small_cube(cubes_by_size_and_color, last_small_cube, color)
+            if small_cube is None and big_cube is not None:
+                cubes = np.delete(cubes, np.where(cubes == big_cube))
+                cubes_by_size = split_cubes(cubes, True)
+                cubes_by_size_and_color = sort_categorized_cubes(cubes_by_size, False)
+            else:
+                break
     return small_cube, big_cube
 
 
@@ -110,12 +107,14 @@ def sort_categorized_cubes(cubes_by_attribute: np.ndarray, by_size: bool) -> np.
     return np.array(sorted_cubes, dtype=object)
 
 
-def delete_cube(cubes: np.ndarray, cube_to_be_deleted: Cube):
-    for i in range(len(cubes)):
-        for j in range(len(cubes[i])):
-            if cubes[i][j] == cube_to_be_deleted:
-                cubes[i] = np.delete(cubes[i], j)
-                return
+# def delete_cube(cubes: np.ndarray, cube_to_be_deleted: Cube):
+#     print("here")
+#     print(cubes)
+#     for i in range(len(cubes)):
+#         for j in range(len(cubes[i])):
+#             if cubes[i][j] == cube_to_be_deleted:
+#                 cubes[i] = np.delete(cubes[i], j)
+#                 return cubes
 
 
 def print_cubes(cubes: np.ndarray):
@@ -131,7 +130,7 @@ def main():
 
     motion_cfg = yaml.safe_load(open('../conf/motion.yaml', 'r'))
 
-    n = 6
+    n = 3
 
     for i in range(n):
         while True:
