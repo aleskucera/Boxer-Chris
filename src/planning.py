@@ -51,6 +51,7 @@ def get_cubes2stack(cubes: np.ndarray, last_small_cube: Cube, color: str) -> tup
                 cubes = np.delete(cubes, np.where(cubes == big_cube))
                 cubes_by_size = split_cubes(cubes, True)
                 cubes_by_size_and_color = sort_categorized_cubes(cubes_by_size, False)
+                last_small_cube = None
             else:
                 break
     return small_cube, big_cube
