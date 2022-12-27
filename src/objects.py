@@ -179,5 +179,5 @@ class Cube:
         out = f' CUBE {self.id}: {self.color}\n\
                 \tCenter: {(self.x, self.y)}\n\
                 \tAngle: {self.angle}\n\n \
-                \tOuter id: {self.outer_id}\n\n'
+                \tParent id: {self.parent_id}\n\n'
         return out

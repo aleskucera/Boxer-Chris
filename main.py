@@ -148,15 +148,15 @@ def demo_two_cubes(hard_home: bool = False):
 
     # Capture images
     capture_images(camera, camera_cfg['img_directory'], camera_cfg)
-    image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
-    image = cv.imread(image_path)
 
     # detect squares in the images
     squares = detect_squares(camera_cfg['img_directory'], detection_cfg)
 
     init_squares = {(square.id, square.color): square.id for square in squares}
 
-    while(True):
+    #small_cube = None
+
+    while True:
         # Capture images
         capture_images(camera, camera_cfg['img_directory'], camera_cfg)
         image_path = os.path.join(camera_cfg['img_directory'], 'red.png')
@@ -166,9 +166,6 @@ def demo_two_cubes(hard_home: bool = False):
         squares = detect_squares(camera_cfg['img_directory'], detection_cfg)
 
         # Visualize detected square
-        
-        squares.sort()
-
         for square in squares:
             if (square.id, square.color) in init_squares:
                 square.parent_id = init_squares[(square.id, square.color)]
@@ -179,7 +176,7 @@ def demo_two_cubes(hard_home: bool = False):
         # Create cube objects
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
 
-        # small_cube, big_cube, last_id = get_cubes2stack(cubes, False, last_id)
+        # small_cube, big_cube = get_cubes2stack(cubes, False, small_cube)
 
         # sort cubes
         # cubes.sort()
