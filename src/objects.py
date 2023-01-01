@@ -112,17 +112,17 @@ class Cube:
         self.angle = angle
         self.color = color
         self.config = config
-        # self.grip_power = self.config['grip_power'][self.id]
+        self.grip_power = self.config['grip_power']
         self.parent_id = parent_id
 
     @property
     def cube_level(self) -> tuple:
-        z = self.config['cube_level'][self.id]
+        z = self.config['cube_level']
         return self.x, self.y, z, self.angle, 90, 0
 
     @property
     def cube_level_rot(self) -> tuple:
-        z = self.config['cube_level'][self.id]
+        z = self.config['cube_level']
         return self.x, self.y, z, self.angle + 90, 90, 0
 
     @property
@@ -148,24 +148,28 @@ class Cube:
     @property
     def pre_release_level(self) -> tuple:
         z = self.config['release_level'][self.parent_id]
-        return self.x, self.y, z, self.angle, 90 - 4, 0
+        angle_offset = self.config['pre_release_angle_offset']
+        return self.x, self.y, z, self.angle, 90 + angle_offset, 0
 
     @property
     def release_level(self) -> tuple:
         z = self.config['release_level'][self.parent_id]
-        return self.x - 20, self.y, z, self.angle, 90 + 4, 0 
+        angle_offset = self.config['release_angle_offset']
+        x_offset = self.config['release_x_offset']
+        return self.x + x_offset, self.y, z, self.angle, 90 + angle_offset, 0
 
     @property
     def post_release_cube_level(self) -> tuple:
-        z = self.config['cube_level'][self.id]
-        return self.x - 20, self.y, z, self.angle, 90, 0
+        z = self.config['cube_level']
+        x_offset = self.config['release_x_offset']
+        return self.x - x_offset, self.y, z, self.angle, 90, 0
 
     def is_reachable(self, commander) -> bool:
         try:
-            commander.find_closest_ikt(self.transport_level_rot)
-            commander.find_closest_ikt(self.transport_level)
-            commander.find_closest_ikt(self.cube_level_rot)
             commander.find_closest_ikt(self.cube_level)
+            commander.find_closest_ikt(self.cube_level_rot)
+            commander.find_closest_ikt(self.transport_level)
+            commander.find_closest_ikt(self.transport_level_rot)
             return True
         except ValueError:
             return False

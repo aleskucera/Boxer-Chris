@@ -12,13 +12,15 @@ def visualize_squares(image, squares, mode='centers'):
             cv.putText(image, f'{int(square.area)}', (square.x - 20, square.y + 10),
                        cv.FONT_HERSHEY_SIMPLEX, 0.5, square.vis_color[::-1], 1)
         elif mode == 'ids':
-            cv.putText(image, f'{square.id}', (square.x - 10, square.y + 10),
-                       cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
+            if square.id is not None:
+                cv.putText(image, f'{square.id}', (square.x - 10, square.y + 10),
+                           cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
         elif mode == 'angles':
             cv.putText(image, f'{square.angle}', (square.x - 10, square.y + 10),
                        cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
         elif mode == 'parents':
-            cv.putText(image, f'{square.parent_id}', (square.x - 10, square.y + 10),
+            if square.parent is not None:
+                cv.putText(image, f'{square.parent_id}', (square.x - 10, square.y + 10),
                        cv.FONT_HERSHEY_SIMPLEX, 1, square.vis_color[::-1], 2)
         else:
             raise ValueError('Unknown visualization mode: {}'.format(mode))

@@ -9,8 +9,9 @@ from .interpolation import interpolate_poly, \
 
 from .calibration import calibrate
 from .detection import detect_squares
+from .planning import get_cubes2stack
 from .visualization import visualize_squares
 from .motion import move_cube, move, center_cube
-from .image import set_up_camera, capture_images, capture_image
+from .image import set_up_camera, capture_images
 from .objects import ApproxPolygon, Square, Cube
-from .planning import get_cubes2stack
+

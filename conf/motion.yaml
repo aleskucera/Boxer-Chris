@@ -6,35 +6,26 @@ off_screen_position:
   - 90
   - 0
 
-cube_level:
-  - 100
-  - 100
-  - 50
-  - 50
-  - 50
-  - 50
-  - 50
+grip_power: 5
 
+cube_level: 50
+transport_level: 150
+operational_level: 90
 release_level:
-  - 100
-  - 100
-  - 101
+  - ???
+  - ???
+  - ???
   - 102.5
   - 103.5
   - 104.5
   - 105.5
 
-operational_level: 90
-transport_level: 150
+release_x_offset: -20
+release_angle_offset: 4
+pre_release_angle_offset: -4
 
-grip_power:
-  - -1
-  - -1
-  - 5
-  - 5
-  - 5
-  - 5
-  - 5
+
+
 
 
   

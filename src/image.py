@@ -53,31 +53,5 @@ def capture_images(camera, directory: str, config: dict):
         cv_image = np.array(image.getData(), dtype="uint8").reshape((image.getRows(), image.getCols(), 3))
         image_path = os.path.join(directory, f'{color}.png')
         cv.imwrite(image_path, cv_image)
-        # cv.imshow('img', cv_image)
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
 
         print(f'Captured image for {color} cubes.')
-
-
-def capture_image(camera, directory: str, config: dict, color: str):
-    os.makedirs(directory, exist_ok=True)
-    gain = config['gain']
-
-    # Set the gain to the value for the current color
-    camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=gain[color], autoManualMode=False)
-    time.sleep(0.3)
-
-    # Capture the image
-    image = camera.retrieveBuffer()
-    image = image.convert(PyCapture2.PIXEL_FORMAT.BGR)
-
-    # Convert the image to a numpy array
-    cv_image = np.array(image.getData(), dtype="uint8").reshape((image.getRows(), image.getCols(), 3))
-    image_path = os.path.join(directory, f'{color}.png')
-    cv.imwrite(image_path, cv_image)
-    cv.imshow('img', cv_image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-    print(f'Captured image for {color} cubes.')

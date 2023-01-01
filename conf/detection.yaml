@@ -1,49 +1,46 @@
 colors:
+#  0:
+#    color: black
+#    shade: dark
+#    symbol: D
+#    rgb: [ 255, 255, 255 ]
+#    lower: [ 100, 0, 0 ]
+#    upper: [ 180, 100, 70 ]
   0:
-    color: black
-    symbol: D
-    rgb: [ 255, 255, 255 ]
-    lower: [ 100, 0, 0 ]
-    upper: [ 180, 100, 70 ]
-  1:
     color: green
+    shade: dark
     symbol: G
     rgb: [ 0, 255, 0 ]
     lower: [ 70, 60, 0 ]
     upper: [ 100, 180, 150 ]
-  2:
+  1:
     color: blue
+    shade: dark
     symbol: B
     rgb: [ 0, 187, 249 ]
     lower: [ 100, 80, 30 ]
     upper: [ 120, 180, 190 ]
-  3:
+  2:
     color: red
+    shade: dark
     symbol: R
     rgb: [ 45, 0, 247 ]
     lower: [ 0, 140, 110 ]
     upper: [ 4, 255, 255 ]
-  4:
+  3:
     color: orange
+    shade: light
     symbol: O
     rgb: [ 120, 1, 22 ]
     lower: [ 5, 200, 130 ]
     upper: [ 8, 255, 255 ]
-  5:
+  4:
     color: yellow
+    shade: light
     symbol: Y
     rgb: [ 0, 18, 51 ]
     lower: [ 15, 100, 120 ]
     upper: [ 25, 255, 255 ]
-
-ids:
-  - 2100
-  - 3200
-  - 4200
-  - 5400
-  - 7000
-  - 8400
-  - 10500
 
 boundaries:
   upper:

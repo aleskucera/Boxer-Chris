@@ -65,24 +65,6 @@ def center_cube(commander, c: Cube, release: bool = False):
     move(commander, c.operational_level_rot, c.operational_level)
     move(commander, c.operational_level, c.cube_level)
 
-    # robCRSgripper(commander, c.grip_power)
-    # commander.wait_gripper_ready()
-    # robCRSgripper(commander, -1)
-    # commander.wait_gripper_ready()
-
-    # move(commander, c.cube_level, c.operational_level)
-    # move(commander, c.operational_level, c.operational_level_rot)
-    # move(commander, c.operational_level_rot, c.cube_level_rot)
-
-    # robCRSgripper(commander, c.grip_power)
-    # commander.wait_gripper_ready()
-    # robCRSgripper(commander, -1)
-    # commander.wait_gripper_ready()
-    
-    # move(commander, c.cube_level_rot, c.operational_level_rot) 
-    # move(commander, c.operational_level_rot, c.operational_level)
-    # move(commander, c.operational_level, c.cube_level)
-
     robCRSgripper(commander, c.grip_power)
     commander.wait_gripper_ready()
     

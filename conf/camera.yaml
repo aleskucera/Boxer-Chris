@@ -14,6 +14,10 @@ default_settings:
 
 
 gain:
+  dark: -2.041
+  light: -5.258
+
+gain2:
   black: 15.379
   green: 9.924
   blue: 2.041

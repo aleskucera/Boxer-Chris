@@ -1,5 +1,6 @@
 import os
 import itertools
+from copy import deepcopy
 
 import cv2 as cv
 import numpy as np
@@ -19,103 +20,103 @@ DB_MIN_SAMPLES = 1
 
 
 def detect_squares(directory: str, config: dict):
-    """Detects squares in the given directory and returns a list of Square objects
-    :param directory: Directory containing images of the cubes
-    :param main_image: Image for which the color of the squares will be detected
-    :param config: Configuration file
-    """
-    contours, squares = [], []
-
     # Find contours
-    contours = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
-    # contours = find_contours_laplacian(directory)
+    dark_contours, dark_image, light_contours, light_image = find_contours(directory, MIN_THRESHOLD,
+                                                                           MAX_THRESHOLD, STEP)
 
-    # Filter out contours that are not squares and cluster them
+    # Create Square objects
+    dark_squares = squares_from_contours(dark_contours, mode='min')
+    light_squares = squares_from_contours(light_contours, mode='mean')
+
+    # Find color of each square
+    dark_squares = assign_attributes(dark_squares, dark_image, config, 'dark')
+    light_squares = assign_attributes(light_squares, light_image, config, 'light')
+
+    return dark_squares + light_squares
+
+
+def squares_from_contours(contours: list, mode: str = 'min') -> list:
+    squares = []
     labels, vectors = cluster_square_contours(contours)
-
-    contours = vectors.reshape(-1, 4, 1, 2)
+    dark_contours = vectors.reshape(-1, 4, 1, 2)
 
     # Create Square objects
     for i in range(np.max(labels) + 1):
-        tmp = contours[labels == i]
-        idx = np.argmin([cv.contourArea(c) for c in tmp])
-        # mean = np.mean(contours[labels == i], axis=0, dtype=np.int32)
-        squares.append(Square(tmp[idx]))
+        tmp = dark_contours[labels == i]
+        min_idx = np.argmin([cv.contourArea(c) for c in tmp])
+        max_idx = np.argmax([cv.contourArea(c) for c in tmp])
+        mean = np.mean(dark_contours[labels == i], axis=0, dtype=np.int32)
+        if mode == 'min':
+            squares.append(Square(tmp[min_idx]))
+        elif mode == 'max':
+            squares.append(Square(tmp[max_idx]))
+        elif mode == 'mean':
+            squares.append(Square(mean))
+        else:
+            raise ValueError('Invalid mode')
 
-    # Filter out squares that are inside other squares
-    squares = filter_outers(squares)
+    for s1, s2 in itertools.combinations(squares, 2):
+        if s1.is_inside((s2.x, s2.y)) or s2.is_inside((s1.x, s1.y)):
+            if s1 > s2:
+                s1.outer_square = True
+            else:
+                s2.outer_square = True
 
-    # Find color of each square
-    squares = assign_attributes(squares, directory, config)
-    return squares
-
-
-def angle_cos(p0, p1, p2) -> float:
-    d1, d2 = (p0 - p1).astype('float'), (p2 - p1).astype('float')
-    return abs(np.dot(d1, d2) / np.sqrt(np.dot(d1, d1) * np.dot(d2, d2)))
-
-
-def max_cos(contour: np.ndarray) -> float:
-    contour = contour.reshape(-1, 2)
-    c, c1, c2 = contour, np.roll(contour, 1, axis=0), np.roll(contour, 2, axis=0)
-
-    cos_angles = [angle_cos(c[i], c1[i], c2[i]) for i in range(4)]
-    return max(cos_angles)
+    return [square for square in squares if not square.outer_square]
 
 
-def find_contours_laplacian(directory: str) -> list:
-    contours = []
-    for file in os.scandir(directory):
-        img = cv.imread(file.path)
-
-        # Apply bilateral filter to reduce noise
-        img = cv.bilateralFilter(img, 50, 15, 15)
-        img = cv.GaussianBlur(img, (5, 5), 0)
-
-        for channel in cv.split(img):
-            # Apply Laplacian filter
-            laplacian = cv.Laplacian(channel, 10, cv.CV_64F)
-            laplacian = np.uint8(np.absolute(laplacian))
-
-            # Find contours
-            new_contours, _ = cv.findContours(laplacian, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-            contours.extend(new_contours)
-
-    return contours
-
-
-def find_contours(directory: str, lower: int, upper: int, step: int) -> list:
-    """Finds contours in the given directory
-    :param directory: Directory containing images of the cubes
+def find_contours(directory: str, lower: int, upper: int, step: int) -> tuple[list, np.ndarray, list, np.ndarray]:
+    """Finds contours in the given images
+    :param directory: directory containing images of the cubes
     :param lower: Lower threshold
     :param upper: Upper threshold
     :param step: Step size for threshold
     """
-    contours = []
-    # for file in os.scandir(directory):
-    file = os.path.join(directory, 'red.png')
-    img = cv.imread(file)
-    img = cv.bilateralFilter(img, 10, 5, 5)
-    img = cv.bilateralFilter(img, 20, 10, 10)
-    img = cv.bilateralFilter(img, 30, 20, 20)
-    img = cv.bilateralFilter(img, 30, 30, 30)
-    img = cv.bilateralFilter(img, 20, 40, 40)
+    dark_contours, light_contours = [], []
+    dark_image, light_image = None, None
+    for file in os.scandir(directory):
+        file_path = os.path.join(directory, file.name)
+        img = cv.imread(file_path)
 
-    cv.imshow(str(file), img)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+        if 'dark' in file.name:
+            dark_image = deepcopy(img)
+            img = correction(img, 0.2, 0.2, 3, 0.2, 0.2, 3, 0.6)
+            img = cv.bilateralFilter(img, 20, 5, 5)
+            img = cv.bilateralFilter(img, 30, 10, 10)
+            img = cv.bilateralFilter(img, 30, 20, 20)
+            img = cv.bilateralFilter(img, 20, 30, 30)
+            # img = cv.bilateralFilter(img, 20, 40, 40)
 
-    for channel in cv.split(img):
-        for threshold in range(lower, upper, step):
-            _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
-            new_contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-            contours.extend(new_contours)
+            # Visualize the image
+            cv.imshow('image', img)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
 
-    return contours
+            for channel in cv.split(img):
+                for threshold in range(lower, upper, step):
+                    _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
+                    contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+                    dark_contours.extend(contours)
+
+        elif 'light' in file.name:
+            light_image = deepcopy(img)
+            img = correction(img, 0.3, 0.3, 7, 0.1, 0.1, 3, 0.6)
+            img = cv.bilateralFilter(img, 10, 5, 5)
+            img = cv.bilateralFilter(img, 20, 10, 10)
+            img = cv.bilateralFilter(img, 20, 20, 20)
+
+            for channel in cv.split(img):
+                for threshold in range(lower, upper, step):
+                    _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
+                    contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+                    light_contours.extend(contours)
+        else:
+            continue
+
+    return dark_contours, dark_image, light_contours, light_image
 
 
-def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
-                            min_samples: int = DB_MIN_SAMPLES) -> tuple:
+def cluster_square_contours(contours: list, eps: int = DB_EPSILON, min_samples: int = DB_MIN_SAMPLES) -> tuple:
     """Clusters contours that are squares
     :param contours: Contours to cluster
     :param eps: DBSCAN epsilon
@@ -134,60 +135,118 @@ def cluster_square_contours(contours: list, eps: int = DB_EPSILON,
     return clustering.labels_, vectors
 
 
-def filter_outers(squares: list) -> list:
-    """Filters out squares that are outside the other squares
-    :param squares: List of Square objects
-    """
-    for s1, s2 in itertools.combinations(squares, 2):
-        if s1.is_inside((s2.x, s2.y)) or s2.is_inside((s1.x, s1.y)):
-            if s1 > s2:
-                s1.outer_square = True
-            else:
-                s2.outer_square = True
-
-    return [square for square in squares if not square.outer_square]
-
-
-def assign_attributes(squares: list, img_dir: str ,config: dict) -> list:
-    """Assigns attributes to the squares
-    :param squares: List of Square objects
-    :param img_dir: image directory
-    :param config: Configuration file
-    """
-    
-    images = []
-    for value in config['colors'].values():
-        # image_path = os.path.join(img_dir, str(value['color']) + '.png')
-        image_path = os.path.join(img_dir, str('yellow') + '.png')
-        image = cv.imread(image_path)
-        hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
-        images.append(hsv_image)
+def assign_attributes(squares: list, image: np.ndarray, config: dict, shade: str) -> list:
+    hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+    filtered_squares = []
 
     for square in squares:
-        colors = []
+        pixels = []
 
-        # Find out which color is the most dominant
-        for i, color in config['colors'].items():
-            hsv_image = images[i]
-
-            # Focus on the inner part of the square
+        for color in config['colors'].values():
             mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
             cv.drawContours(mask, [square.corners], -1, 255, -1)
             square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
-        
+
             lower = np.array(color['lower'])
             upper = np.array(color['upper'])
 
             filtered_image = cv.inRange(square_hsv, lower, upper)
-            colors.append(np.sum(filtered_image))
+            pixels.append(np.sum(filtered_image))
 
-        square.vis_color = config['colors'][np.argmax(colors)]['rgb']
-        square.symbol = config['colors'][np.argmax(colors)]['symbol']
-        square.color = config['colors'][np.argmax(colors)]['color']
+        if config['colors'][np.argmax(pixels)]['shade'] == shade:
+            square.vis_color = config['colors'][np.argmax(pixels)]['rgb']
+            square.symbol = config['colors'][np.argmax(pixels)]['symbol']
+            square.color = config['colors'][np.argmax(pixels)]['color']
 
-        boundaries = config['boundaries']
+            for i, (ub, lb) in enumerate(zip(config['boundaries']['upper'], config['boundaries']['lower'])):
+                if lb < square.area < ub:
+                    square.id = i
 
-        for i, (ub, lb) in enumerate(zip(boundaries['upper'], boundaries['lower'])):
-            if lb < square.area < ub:
-                square.id = i
-    return squares
+            filtered_squares.append(square)
+    return filtered_squares
+
+def correction(img, shadow_amount_percent, shadow_tone_percent, shadow_radius,
+               highlight_amount_percent, highlight_tone_percent, highlight_radius,
+               color_percent):
+    """
+    Image Shadow / Highlight Correction. The same function as it in Photoshop / GIMP
+    :param img: input RGB image numpy array of shape (height, width, 3)
+    :param shadow_amount_percent [0.0 ~ 1.0]: Controls (separately for the highlight and shadow values in the image) how much of a correction to make.
+    :param shadow_tone_percent [0.0 ~ 1.0]: Controls the range of tones in the shadows or highlights that are modified.
+    :param shadow_radius [>0]: Controls the size of the local neighborhood around each pixel
+    :param highlight_amount_percent [0.0 ~ 1.0]: Controls (separately for the highlight and shadow values in the image) how much of a correction to make.
+    :param highlight_tone_percent [0.0 ~ 1.0]: Controls the range of tones in the shadows or highlights that are modified.
+    :param highlight_radius [>0]: Controls the size of the local neighborhood around each pixel
+    :param color_percent [-1.0 ~ 1.0]:
+    :return:
+    """
+    shadow_tone = shadow_tone_percent * 255
+    highlight_tone = 255 - highlight_tone_percent * 255
+
+    shadow_gain = 1 + shadow_amount_percent * 6
+    highlight_gain = 1 + highlight_amount_percent * 6
+
+    # extract RGB channel
+    height, width = img.shape[:2]
+    img = img.astype(np.float)
+    img_R, img_G, img_B = img[..., 2].reshape(-1), img[..., 1].reshape(-1), img[..., 0].reshape(-1)
+
+    # The entire correction process is carried out in YUV space,
+    # adjust highlights/shadows in Y space, and adjust colors in UV space
+    # convert to Y channel (grey intensity) and UV channel (color)
+    img_Y = .3 * img_R + .59 * img_G + .11 * img_B
+    img_U = -img_R * .168736 - img_G * .331264 + img_B * .5
+    img_V = img_R * .5 - img_G * .418688 - img_B * .081312
+
+    # extract shadow / highlight
+    shadow_map = 255 - img_Y * 255 / shadow_tone
+    shadow_map[np.where(img_Y >= shadow_tone)] = 0
+    highlight_map = 255 - (255 - img_Y) * 255 / (255 - highlight_tone)
+    highlight_map[np.where(img_Y <= highlight_tone)] = 0
+
+    # // Gaussian blur on tone map, for smoother transition
+    if shadow_amount_percent * shadow_radius > 0:
+        # shadow_map = cv2.GaussianBlur(shadow_map.reshape(height, width), ksize=(shadow_radius, shadow_radius), sigmaX=0).reshape(-1)
+        shadow_map = cv.blur(shadow_map.reshape(height, width), ksize=(shadow_radius, shadow_radius)).reshape(-1)
+
+    if highlight_amount_percent * highlight_radius > 0:
+        # highlight_map = cv2.GaussianBlur(highlight_map.reshape(height, width), ksize=(highlight_radius, highlight_radius), sigmaX=0).reshape(-1)
+        highlight_map = cv.blur(highlight_map.reshape(height, width), ksize=(highlight_radius, highlight_radius)).reshape(-1)
+
+    # Tone LUT
+    t = np.arange(256)
+    LUT_shadow = (1 - np.power(1 - t * (1 / 255), shadow_gain)) * 255
+    LUT_shadow = np.maximum(0, np.minimum(255, np.int_(LUT_shadow + .5)))
+    LUT_highlight = np.power(t * (1 / 255), highlight_gain) * 255
+    LUT_highlight = np.maximum(0, np.minimum(255, np.int_(LUT_highlight + .5)))
+
+    # adjust tone
+    shadow_map = shadow_map * (1 / 255)
+    highlight_map = highlight_map * (1 / 255)
+
+    iH = (1 - shadow_map) * img_Y + shadow_map * LUT_shadow[np.int_(img_Y)]
+    iH = (1 - highlight_map) * iH + highlight_map * LUT_highlight[np.int_(iH)]
+    img_Y = iH
+
+    # adjust color
+    if color_percent != 0:
+        # color LUT
+        if color_percent > 0:
+            LUT = (1 - np.sqrt(np.arange(32768)) * (1 / 128)) * color_percent + 1
+        else:
+            LUT = np.sqrt(np.arange(32768)) * (1 / 128) * color_percent + 1
+
+        # adjust color saturation adaptively according to highlights/shadows
+        color_gain = LUT[np.int_(img_U ** 2 + img_V ** 2 + .5)]
+        w = 1 - np.minimum(2 - (shadow_map + highlight_map), 1)
+        img_U = w * img_U + (1 - w) * img_U * color_gain
+        img_V = w * img_V + (1 - w) * img_V * color_gain
+
+    # re convert to RGB channel
+    output_R = np.int_(img_Y + 1.402 * img_V + .5)
+    output_G = np.int_(img_Y - .34414 * img_U - .71414 * img_V + .5)
+    output_B = np.int_(img_Y + 1.772 * img_U + .5)
+
+    output = np.row_stack([output_B, output_G, output_R]).T.reshape(height, width, 3)
+    output = np.minimum(output, 255).astype(np.uint8)
+    return output
