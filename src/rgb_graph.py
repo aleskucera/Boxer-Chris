@@ -25,6 +25,6 @@ def plot_rgb_graph(image: np.ndarray, k: int = 5) -> None:
 
 
 if __name__ == '__main__':
-    img = plt.imread('../colors/red.png')
+    img = plt.imread('../colors/blue.png')
     plot_rgb_graph(img)
 

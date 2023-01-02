@@ -27,9 +27,9 @@ def detection_demo(directory: str, mode: str):
     :param mode: 'centers', 'areas', 'ids' or 'images'
     """
 
-    camera = set_up_camera(camera_cfg)
-        
-    capture_images(camera, directory, camera_cfg)
+    # camera = set_up_camera(camera_cfg)
+    #
+    # capture_images(camera, directory, camera_cfg)
 
     image_path = os.path.join(directory, 'dark.png')
     image = cv.imread(image_path)
@@ -114,7 +114,7 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
 
 def main():
-    detection_demo('detection/images20', 'areas')
+    detection_demo('detection/images6', 'ids')
     # cube_insertion(False, None)
 
 

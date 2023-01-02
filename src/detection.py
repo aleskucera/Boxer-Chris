@@ -21,12 +21,16 @@ DB_MIN_SAMPLES = 1
 
 def detect_squares(directory: str, config: dict):
     # Find contours
-    dark_contours, dark_image, light_contours, light_image = find_contours(directory, MIN_THRESHOLD,
-                                                                           MAX_THRESHOLD, STEP)
+    dark_contours, dark_image, light_contours, light_image = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
+
+    # Visualize contours
+    # cv.drawContours(dark_image, dark_contours, -1, (0, 255, 0), 3)
+    # cv.imshow('image', dark_image)
+    # cv.waitKey(0)
 
     # Create Square objects
-    dark_squares = squares_from_contours(dark_contours, mode='min')
-    light_squares = squares_from_contours(light_contours, mode='mean')
+    dark_squares = squares_from_contours(dark_contours, dark_image, mode='min')
+    light_squares = squares_from_contours(light_contours, light_image, mode='mean')
 
     # Find color of each square
     dark_squares = assign_attributes(dark_squares, dark_image, config, 'dark')
@@ -35,17 +39,23 @@ def detect_squares(directory: str, config: dict):
     return dark_squares + light_squares
 
 
-def squares_from_contours(contours: list, mode: str = 'min') -> list:
+def squares_from_contours(contours_list: list, image,mode: str = 'min') -> list:
     squares = []
-    labels, vectors = cluster_square_contours(contours)
-    dark_contours = vectors.reshape(-1, 4, 1, 2)
+    labels, vectors = cluster_square_contours(contours_list)
+    contours = vectors.reshape(-1, 4, 1, 2)
+
+    # Visualize the contours
+    # cv.drawContours(image, contours, -1, (0, 255, 0), 3)
+    # cv.imshow('image', image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
 
     # Create Square objects
     for i in range(np.max(labels) + 1):
-        tmp = dark_contours[labels == i]
+        tmp = contours[labels == i]
         min_idx = np.argmin([cv.contourArea(c) for c in tmp])
         max_idx = np.argmax([cv.contourArea(c) for c in tmp])
-        mean = np.mean(dark_contours[labels == i], axis=0, dtype=np.int32)
+        mean = np.mean(contours[labels == i], axis=0, dtype=np.int32)
         if mode == 'min':
             squares.append(Square(tmp[min_idx]))
         elif mode == 'max':
@@ -81,16 +91,16 @@ def find_contours(directory: str, lower: int, upper: int, step: int):
         if 'dark' in file.name:
             dark_image = deepcopy(img)
             img = correction(img, 0.2, 0.2, 3, 0.2, 0.2, 3, 0.6)
-            img = cv.bilateralFilter(img, 20, 5, 5)
+            img = cv.bilateralFilter(img, 30, 5, 5)
             img = cv.bilateralFilter(img, 30, 10, 10)
             img = cv.bilateralFilter(img, 30, 20, 20)
-            img = cv.bilateralFilter(img, 20, 30, 30)
-            # img = cv.bilateralFilter(img, 20, 40, 40)
+            img = cv.bilateralFilter(img, 30, 30, 30)
+            img = cv.bilateralFilter(img, 20, 40, 40)
 
             # Visualize the image
-            # cv.imshow('image', img)
-            # cv.waitKey(0)
-            # cv.destroyAllWindows()
+            cv.imshow('image', img)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
 
             for channel in cv.split(img):
                 for threshold in range(lower, upper, step):
@@ -105,11 +115,17 @@ def find_contours(directory: str, lower: int, upper: int, step: int):
             img = cv.bilateralFilter(img, 20, 10, 10)
             img = cv.bilateralFilter(img, 20, 20, 20)
 
+            # Visualize the image
+            # cv.imshow('image', img)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
+
             for channel in cv.split(img):
                 for threshold in range(lower, upper, step):
                     _, thresh = cv.threshold(channel, threshold, 255, cv.THRESH_BINARY)
                     contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
                     light_contours.extend(contours)
+
         else:
             continue
 
@@ -144,14 +160,28 @@ def assign_attributes(squares: list, image: np.ndarray, config: dict, shade: str
 
         for color in config['colors'].values():
             mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
+
+
             cv.drawContours(mask, [square.corners], -1, 255, -1)
             square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
+
+            # Visualize the mask
+            cv.imshow('mask', square_hsv)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
 
             lower = np.array(color['lower'])
             upper = np.array(color['upper'])
 
             filtered_image = cv.inRange(square_hsv, lower, upper)
             pixels.append(np.sum(filtered_image))
+
+            print(f'{color["color"]}: {np.sum(filtered_image)}')
+
+            # Visualize the image
+            cv.imshow('image', filtered_image)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
 
         if config['colors'][np.argmax(pixels)]['shade'] == shade:
             square.vis_color = config['colors'][np.argmax(pixels)]['rgb']
