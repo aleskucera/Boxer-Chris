@@ -92,9 +92,9 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
                 square.parent_id = init_squares[(square.id, square.color)]
 
         # Visualize squares
-        # image_path = os.path.join(camera_cfg['img_directory'], 'dark.png')
-        # image = cv.imread(image_path)
-        # visualize_squares(image, squares, 'parents')
+        image_path = os.path.join(camera_cfg['img_directory'], 'dark.png')
+        image = cv.imread(image_path)
+        visualize_squares(image, squares, 'parents')
 
         # Create cube objects and filter out unreachable cubes
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
@@ -114,7 +114,7 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
 
 def main():
-    detection_demo('detection/images11', 'ids')
+    detection_demo('detection/images20', 'areas')
     # cube_insertion(False, None)
 
 
