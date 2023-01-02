@@ -162,7 +162,7 @@ class Cube:
     def post_release_cube_level(self) -> tuple:
         z = self.config['cube_level']
         x_offset = self.config['release_x_offset']
-        return self.x - x_offset, self.y, z, self.angle, 90, 0
+        return self.x + x_offset, self.y, z, self.angle, 90, 0
 
     def is_reachable(self, commander) -> bool:
         try:
@@ -172,6 +172,8 @@ class Cube:
             commander.find_closest_ikt(self.transport_level_rot)
             return True
         except ValueError:
+            print('Not reachable cube: ')
+            print(f'{self.__str__}')
             return False
 
     def __lt__(self, other):

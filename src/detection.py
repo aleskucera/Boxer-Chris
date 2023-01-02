@@ -65,7 +65,7 @@ def squares_from_contours(contours: list, mode: str = 'min') -> list:
     return [square for square in squares if not square.outer_square]
 
 
-def find_contours(directory: str, lower: int, upper: int, step: int) -> tuple[list, np.ndarray, list, np.ndarray]:
+def find_contours(directory: str, lower: int, upper: int, step: int):
     """Finds contours in the given images
     :param directory: directory containing images of the cubes
     :param lower: Lower threshold
@@ -88,9 +88,9 @@ def find_contours(directory: str, lower: int, upper: int, step: int) -> tuple[li
             # img = cv.bilateralFilter(img, 20, 40, 40)
 
             # Visualize the image
-            cv.imshow('image', img)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
+            # cv.imshow('image', img)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
 
             for channel in cv.split(img):
                 for threshold in range(lower, upper, step):

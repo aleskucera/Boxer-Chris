@@ -27,9 +27,9 @@ def detection_demo(directory: str, mode: str):
     :param mode: 'centers', 'areas', 'ids' or 'images'
     """
 
-    # camera = set_up_camera(camera_cfg)
+    camera = set_up_camera(camera_cfg)
         
-    # capture_images(camera, directory, camera_cfg)
+    capture_images(camera, directory, camera_cfg)
 
     image_path = os.path.join(directory, 'dark.png')
     image = cv.imread(image_path)
@@ -92,13 +92,13 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
                 square.parent_id = init_squares[(square.id, square.color)]
 
         # Visualize squares
-        image_path = os.path.join(camera_cfg['img_directory'], 'dark.png')
-        image = cv.imread(image_path)
-        visualize_squares(image, squares, 'parents')
+        # image_path = os.path.join(camera_cfg['img_directory'], 'dark.png')
+        # image = cv.imread(image_path)
+        # visualize_squares(image, squares, 'parents')
 
         # Create cube objects and filter out unreachable cubes
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
-        reachable_cubes = [cube for cube in cubes if cube.is_reachable()]
+        reachable_cubes = [cube for cube in cubes if cube.is_reachable(commander)]
 
         # Get small and big cube for insertion
         small_cube, big_cube = get_cubes2stack(reachable_cubes, small_cube, mode)
@@ -114,7 +114,8 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
 
 def main():
-    detection_demo('detection/images1', 'ids')
+    detection_demo('detection/images11', 'ids')
+    # cube_insertion(False, None)
 
 
 if __name__ == '__main__':
