@@ -176,6 +176,11 @@ class Cube:
             print(f'{self.__str__}')
             return False
 
+    def is_identified(self):
+        if self.id is None or self.color is None:
+            return False
+        return True
+
     def __lt__(self, other):
         return self.id < other.id
 

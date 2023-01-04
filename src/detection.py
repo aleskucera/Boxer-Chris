@@ -8,10 +8,10 @@ from sklearn.cluster import DBSCAN
 
 from .objects import ApproxPolygon, Square
 
-MAX_COS = 0.05
-MAX_LEN_RATIO = 1.05
+MAX_COS = 0.06
+MAX_LEN_RATIO = 1.06
 
-STEP = 2
+STEP = 1
 MIN_THRESHOLD = 0
 MAX_THRESHOLD = 255
 
@@ -23,14 +23,15 @@ def detect_squares(directory: str, config: dict):
     # Find contours
     dark_contours, dark_image, light_contours, light_image = find_contours(directory, MIN_THRESHOLD, MAX_THRESHOLD, STEP)
 
-    # Visualize contours
-    # cv.drawContours(dark_image, dark_contours, -1, (0, 255, 0), 3)
-    # cv.imshow('image', dark_image)
-    # cv.waitKey(0)
-
     # Create Square objects
     dark_squares = squares_from_contours(dark_contours, dark_image, mode='min')
-    light_squares = squares_from_contours(light_contours, light_image, mode='mean')
+    light_squares = squares_from_contours(light_contours, light_image, mode='min')
+
+    # for square in dark_squares:
+    #     cv.drawContours(dark_image, [square.corners], 0, (0, 255, 0), 2)
+    # cv.imshow('image', dark_image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
 
     # Find color of each square
     dark_squares = assign_attributes(dark_squares, dark_image, config, 'dark')
@@ -43,12 +44,6 @@ def squares_from_contours(contours_list: list, image,mode: str = 'min') -> list:
     squares = []
     labels, vectors = cluster_square_contours(contours_list)
     contours = vectors.reshape(-1, 4, 1, 2)
-
-    # Visualize the contours
-    # cv.drawContours(image, contours, -1, (0, 255, 0), 3)
-    # cv.imshow('image', image)
-    # cv.waitKey(0)
-    # cv.destroyAllWindows()
 
     # Create Square objects
     for i in range(np.max(labels) + 1):
@@ -97,10 +92,9 @@ def find_contours(directory: str, lower: int, upper: int, step: int):
             img = cv.bilateralFilter(img, 30, 30, 30)
             img = cv.bilateralFilter(img, 20, 40, 40)
 
-            # Visualize the image
-            cv.imshow('image', img)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
+            # cv.imshow('image', img)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
 
             for channel in cv.split(img):
                 for threshold in range(lower, upper, step):
@@ -108,17 +102,13 @@ def find_contours(directory: str, lower: int, upper: int, step: int):
                     contours, _ = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
                     dark_contours.extend(contours)
 
+
         elif 'light' in file.name:
             light_image = deepcopy(img)
             img = correction(img, 0.3, 0.3, 7, 0.1, 0.1, 3, 0.6)
             img = cv.bilateralFilter(img, 10, 5, 5)
             img = cv.bilateralFilter(img, 20, 10, 10)
             img = cv.bilateralFilter(img, 20, 20, 20)
-
-            # Visualize the image
-            # cv.imshow('image', img)
-            # cv.waitKey(0)
-            # cv.destroyAllWindows()
 
             for channel in cv.split(img):
                 for threshold in range(lower, upper, step):
@@ -165,23 +155,11 @@ def assign_attributes(squares: list, image: np.ndarray, config: dict, shade: str
             cv.drawContours(mask, [square.corners], -1, 255, -1)
             square_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
 
-            # Visualize the mask
-            cv.imshow('mask', square_hsv)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
-
             lower = np.array(color['lower'])
             upper = np.array(color['upper'])
 
             filtered_image = cv.inRange(square_hsv, lower, upper)
             pixels.append(np.sum(filtered_image))
-
-            print(f'{color["color"]}: {np.sum(filtered_image)}')
-
-            # Visualize the image
-            cv.imshow('image', filtered_image)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
 
         if config['colors'][np.argmax(pixels)]['shade'] == shade:
             square.vis_color = config['colors'][np.argmax(pixels)]['rgb']

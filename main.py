@@ -12,7 +12,7 @@ camera_cfg = yaml.safe_load(open('conf/camera.yaml', 'r'))
 detection_cfg = yaml.safe_load(open('conf/detection.yaml', 'r'))
 motion_cfg = yaml.safe_load(open('conf/motion.yaml', 'r'))
 
-transformation = np.load('conf/transformation.npz')
+transformation = np.load('conf/transform_test.npz')
 A = transformation['A']
 b = transformation['b']
 
@@ -27,9 +27,9 @@ def detection_demo(directory: str, mode: str):
     :param mode: 'centers', 'areas', 'ids' or 'images'
     """
 
-    # camera = set_up_camera(camera_cfg)
-    #
-    # capture_images(camera, directory, camera_cfg)
+    camera = set_up_camera(camera_cfg)
+    
+    capture_images(camera, directory, camera_cfg)
 
     image_path = os.path.join(directory, 'dark.png')
     image = cv.imread(image_path)
@@ -98,10 +98,10 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
         # Create cube objects and filter out unreachable cubes
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
-        reachable_cubes = [cube for cube in cubes if cube.is_reachable(commander)]
+        valid_cubes = [cube for cube in cubes if (cube.is_reachable(commander) and cube.is_identified())]
 
         # Get small and big cube for insertion
-        small_cube, big_cube = get_cubes2stack(reachable_cubes, small_cube, mode)
+        small_cube, big_cube = get_cubes2stack(valid_cubes, small_cube, mode)
 
         if small_cube is None or big_cube is None:
             break
@@ -114,8 +114,9 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
 
 def main():
-    detection_demo('detection/images6', 'ids')
-    # cube_insertion(False, None)
+    # detection_demo('camera/test', 'ids')
+    cube_insertion(False, None)
+    # get_transformation(False)
 
 
 if __name__ == '__main__':

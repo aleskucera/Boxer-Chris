@@ -39,7 +39,7 @@ def move_cube(commander, c0: Cube, c1: Cube, off_screen_pos: list, center_dest: 
     commander.wait_gripper_ready()
     
     # Move to the off-screen position
-    move(commander, c1.operational_level, off_screen_pos, step=6)
+    move(commander, c1.operational_level, off_screen_pos, step=3)
 
 
 def center_cube(commander, c: Cube, release: bool = False):

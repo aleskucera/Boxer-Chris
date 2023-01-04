@@ -9,7 +9,8 @@ from .objects import Cube
 from .image import capture_images
 from .CRS_commander import Commander
 from .detection import detect_squares
-from .motion import center_cube, move_cube
+from .motion import center_cube, move_cube, move
+from .visualization import visualize_squares
 
 
 def calibrate(commander: Commander, camera, calib_config: dict, camera_config: dict,
@@ -28,7 +29,8 @@ def calibrate(commander: Commander, camera, calib_config: dict, camera_config: d
     positions = calib_config["positions"]
 
     # Center cube at initial position
-    p = Cube(base_position['x'], base_position['y'], 0, 6, motion_config)
+    p = Cube(base_position['x'], base_position['y'], 0, 6, 4, motion_config)
+    move(commander, p.transport_level, p.operational_level)
     center_cube(commander, p)
 
     initial_positions = [base_position] + positions
@@ -39,21 +41,20 @@ def calibrate(commander: Commander, camera, calib_config: dict, camera_config: d
         p0, p1 = deepcopy(p), deepcopy(p)
         p0.x, p0.y = ip['x'], ip['y']
         p1.x, p1.y = ep['x'], ep['y']
-        move_cube(commander, p0, p1, motion_config['base_position'], center_dest=False)
+        move_cube(commander, p0, p1, motion_config['off_screen_position'], center_dest=False)
 
         # Capture images
         capture_images(camera, camera_config['img_directory'], camera_config)
-        image_path = os.path.join(camera_config['img_directory'], 'red.png')
+        image_path = os.path.join(camera_config['img_directory'], 'dark.png')
         image = cv.imread(image_path)
 
         # Detect squares
-        squares = detect_squares(camera_config['img_directory'], image, detection_cfg)
+        squares = detect_squares(camera_config['img_directory'], detection_cfg)
 
         if len(squares) == 1:
             camera_coords.append([squares[0].x, squares[0].y])
 
-        cv.drawContours(image, [squares[0].corners], 0, squares[0].color[::-1], 3)
-        cv.imwrite('output.png', image)
+        visualize_squares(image, squares)
 
     camera_coords = np.array(camera_coords).T
 
@@ -65,7 +66,7 @@ def calibrate(commander: Commander, camera, calib_config: dict, camera_config: d
     print(f'b: {b}')
 
     # Save transform parameters
-    np.savez('conf/transform.npz', A=A, b=b)
+    np.savez('conf/transform_test.npz', A=A, b=b)
 
 
 def optimized_func(x, cam, glob):

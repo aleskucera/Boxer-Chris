@@ -37,7 +37,7 @@ def robCRSikt(robot, pos):
     :return: Coordinates of robot position in joint coordinates (degrees).
     """
     
-    pos = np.array(pos).astype(float)
+    pos = np.array(pos, dtype=object).astype(float)
     pos[3:] = pos[3:] / 180.0 * np.pi
 
     myeps = 10000 * 2.2204e-16 # equality tolerance

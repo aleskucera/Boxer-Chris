@@ -42,7 +42,7 @@ def capture_images(camera, directory: str, config: dict):
 
     for color, value in config['gain'].items():
         # Set the gain to the value for the current color
-        camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=value, autoManualMode=False)
+        camera.setProperty(type=PyCapture2.PROPERTY_TYPE.GAIN, absValue=value)
         time.sleep(0.3)
 
         # Capture the image
@@ -53,5 +53,3 @@ def capture_images(camera, directory: str, config: dict):
         cv_image = np.array(image.getData(), dtype="uint8").reshape((image.getRows(), image.getCols(), 3))
         image_path = os.path.join(directory, f'{color}.png')
         cv.imwrite(image_path, cv_image)
-
-        print(f'Captured image for {color} cubes.')

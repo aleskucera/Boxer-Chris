@@ -511,7 +511,6 @@ class Commander:
         buf = '\n'
         if sync:
             self.sync_cmd_fifo()
-            print('Synchronized!')
         self.send_cmd("\nR:\n")
         while True:
             buf += self.read_resp(1024)
