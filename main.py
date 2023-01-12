@@ -131,7 +131,7 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
 def main():
     # detection_demo('camera/test', 'ids')
-    cube_insertion(False, None)
+    cube_insertion(True, 'all')
     # get_transformation(False)
 
 
