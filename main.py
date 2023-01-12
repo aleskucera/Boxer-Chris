@@ -98,7 +98,23 @@ def cube_insertion(hard_home: bool = False, mode: str = 'all'):
 
         # Create cube objects and filter out unreachable cubes
         cubes = [square.create_cube(A, b, motion_cfg) for square in squares]
-        valid_cubes = [cube for cube in cubes if (cube.is_reachable(commander) and cube.is_identified())]
+        print('Number of detected cubes: ', len(cubes))
+
+        not_identified_cubes = [cube for cube in cubes if not cube.is_identified()]
+        print('Number of not identified cubes (removing): ', len(not_identified_cubes))
+
+        not_reachable_cubes = [cube for cube in cubes if not cube.is_reachable(commander)]
+        print('Cubes not reachable (removing): ', not_reachable_cubes)
+
+        smallest_cubes = [cube for cube in cubes if cube.id == 0]
+        print('Smallest cubes (removing): ', smallest_cubes)
+
+        valid_cubes = [cube for cube in cubes if
+                       cube not in not_reachable_cubes and
+                       cube not in not_identified_cubes and
+                       cube not in smallest_cubes]
+
+        # valid_cubes = [cube for cube in cubes if (cube.is_reachable(commander) and cube.is_identified())]
 
         # Get small and big cube for insertion
         small_cube, big_cube = get_cubes2stack(valid_cubes, small_cube, mode)
